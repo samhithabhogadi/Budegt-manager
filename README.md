@@ -1,19 +1,19 @@
-# 🎈 Blank app template
+# 🎓 Student Budget App
 
-A simple Streamlit app template for you to modify!
+A simple budgeting app for students to track income, expenses, and savings. Built with Python and Streamlit.
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://blank-app-template.streamlit.app/)
+## Features
+- Monthly income tracking
+- Categorized expense input
+- Pie chart for expense distribution
+- Summary with savings and tips
 
-### How to run it on your own machine
+## Demo
+👉 Try it live: [https://your-username-your-repo-name.streamlit.app](https://your-username-your-repo-name.streamlit.app)
 
-1. Install the requirements
+## Run Locally
 
-   ```
-   $ pip install -r requirements.txt
-   ```
+```bash
+pip install -r requirements.txt
+streamlit run app.py
 
-2. Run the app
-
-   ```
-   $ streamlit run streamlit_app.py
-   ```
