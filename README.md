@@ -22,5 +22,11 @@ pip install numpy
 # Run the Streamlit app
 streamlit run streamlit_app.py
 
+GitHub: https://github.com/samhithabhogadi/Budgett-stmanager
 
-
+git init
+git add .
+git commit -m "Initial commit: Student Budget Manager app"
+git branch -M main
+git remote add origin https://github.com/samhithabhogadi/Budgett-stmanager.git
+git push -u origin main
