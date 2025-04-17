@@ -14,10 +14,18 @@ A simple budgeting app for students to track income, expenses, and savings. Buil
 ## Run Locally
 
 ```bash
+# Clone the repository
+git clone https://github.com/your-username/Budegtstmanager.git
+cd Budegtstmanager
+
+# Install dependencies
 pip install -r requirements.txt
-streamlit run app.py
-pip install matplotlib
-streamlit run Buget-stmanager.py
-git add requirements.txt
-git commit -m "Add requirements.txt for Streamlit Cloud"
-git push
+
+# Run the app
+streamlit run streamlit_app.py
+git init
+git add .
+git commit -m "Initial commit: Student Budget Manager app"
+git branch -M main
+git remote add origin https://github.com/samhithabhogadi/Budegtstmanager.git
+git push -u origin main
