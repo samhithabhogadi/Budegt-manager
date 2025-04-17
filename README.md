@@ -9,14 +9,14 @@ A simple budgeting app for students to track income, expenses, and savings. Buil
 - Summary with savings and tips
 
 ## Demo
-👉 Try it live: https://github.com/samhithabhogadi/Budegt-stmanager.git
+👉 Try it live: https://github.com/samhithabhogadi/Budgett-stmanager.git
 
 ## Run Locally
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/Budegtstmanager.git
-cd Budegtstmanager
+git clone https://github.com/samhithabhogadi/Budgett-stmanager
+cd Budegttstmanager
 
 # Install dependencies
 pip install -r requirements.txt
@@ -27,5 +27,6 @@ git init
 git add .
 git commit -m "Initial commit: Student Budget Manager app"
 git branch -M main
-git remote add origin https://github.com/samhithabhogadi/Budegtstmanager.git
+git remote add origin https://github.com/samhithabhogadi/Budgett-stmanager
+
 git push -u origin main
