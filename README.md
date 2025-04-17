@@ -17,7 +17,8 @@ cd Budgett-stmanager
 pip install -r requirements.txt
 pip install matplotlib
 pip install pandas
-pip install numpy 
+pip install numpy
+pip install plotly
 
 # Run the Streamlit app
 streamlit run streamlit_app.py
