@@ -18,3 +18,6 @@ pip install -r requirements.txt
 streamlit run app.py
 
 streamlit run your_script_name.py
+git add requirements.txt
+git commit -m "Add requirements.txt for Streamlit Cloud"
+git push
