@@ -2,162 +2,97 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-import plotly.express as px
+import yfinance as yf
+import plotly.graph_objs as go
 
-st.set_page_config(page_title="Student Budget Manager", layout="wide", page_icon="💸")
-if section == "🏠 Home":
-    st.title("🎓 Welcome to Your Student Budget Dashboard")
+st.set_page_config(page_title="Student Budget & Investment Manager", layout="wide", page_icon="💸")
 
-    st.subheader("🧑 Personal Setup")
-    user_name = st.text_input("Enter your name")
-    monthly_budget = st.slider("Set your Monthly Budget ($)", min_value=100, max_value=5000, step=50, value=1000)
-
-    if user_name:
-        st.success(f"Hello {user_name}! 👋 Here’s how you’re doing with your budget of ${monthly_budget:.2f} this month.")
-    else:
-        st.info("Please enter your name above to personalize your dashboard.")
-
-    st.markdown("___")
-
-    if not st.session_state['budget_data'].empty:
-        df = st.session_state['budget_data']
-        df['Date'] = pd.to_datetime(df['Date'])
-        grouped = df.groupby('Category')['Amount'].sum()
-        daily_sum = df.groupby('Date')['Amount'].sum()
-        total_spent = df['Amount'].sum()
-
-        # Budget status message
-        if user_name:
-            if total_spent > monthly_budget:
-                st.error(f"⚠️ {user_name}, you've exceeded your monthly budget by ${total_spent - monthly_budget:.2f}!")
-            else:
-                st.success(f"✅ {user_name}, you're within your budget. You have ${monthly_budget - total_spent:.2f} left.")
-
-        # Metrics
-        highest_category = grouped.idxmax()
-        highest_amount = grouped.max()
-        st.metric("💵 Total Spent", f"${total_spent:.2f}")
-        st.metric("📌 Top Spending Category", f"{highest_category} (${highest_amount:.2f})")
-
-        # Charts
-        col1, col2 = st.columns(2)
-        with col1:
-            st.subheader("🧁 Spending by Category")
-            fig1, ax1 = plt.subplots()
-            ax1.pie(grouped, labels=grouped.index, autopct='%1.1f%%', startangle=90)
-            ax1.axis('equal')
-            st.pyplot(fig1)
-
-        with col2:
-            st.subheader("📅 Daily Spending Trend")
-            fig2, ax2 = plt.subplots()
-            ax2.plot(daily_sum.index, daily_sum.values, marker='o', color='green')
-            ax2.set_title("Daily Spending Over Time")
-            ax2.set_ylabel("Amount ($)")
-            st.pyplot(fig2)
-
-        st.markdown("---")
-        st.subheader("📊 Interactive Category Breakdown")
-        fig_bar = px.bar(
-            grouped.reset_index(),
-            x='Category',
-            y='Amount',
-            color='Amount',
-            color_continuous_scale='Blues',
-            labels={'Amount': 'Total Spent ($)', 'Category': 'Expense Category'},
-            title="Expense Breakdown by Category"
-        )
-        st.plotly_chart(fig_bar, use_container_width=True)
-
-    else:
-        st.info("No expenses yet. Add some in the ➕ Add Expense section to see insights!")
 # Sidebar Navigation
-st.sidebar.title("📚 Student Budget Manager")
-st.sidebar.markdown("---")
-st.sidebar.subheader("📌 Navigation")
-section = st.sidebar.radio("Go to", ["🏠 Home", "➕ Add Expense"])
+st.sidebar.title("📚 Student Financial Toolkit")
+section = st.sidebar.radio("Navigate to", ["Home", "Add Expense", "Investments", "Nifty Tracker"])
 
-# Sidebar Details
-st.sidebar.markdown("---")
-st.sidebar.subheader("ℹ️ About")
-st.sidebar.info("""
-This app helps students manage their monthly expenses, track spending habits, and stay on budget.
-
-🔧 Built with:
-- Python 🐍
-- Streamlit 🌐
-- Pandas 📊
-- Matplotlib 📈
-- Plotly 🔥
-""")
-
-# Initialize session state
+# Session State Initialization
 if 'budget_data' not in st.session_state:
     st.session_state['budget_data'] = pd.DataFrame(columns=['Date', 'Category', 'Amount'])
+if 'user_info' not in st.session_state:
+    st.session_state['user_info'] = {}
 
 # Home Section
-if section == "🏠 Home":
-    st.title("🎓 Welcome to Your Student Budget Dashboard")
-    st.markdown("Gain insights into your spending patterns and make smarter financial decisions 💡")
+if section == "Home":
+    st.title("🎓 Welcome to Student Budget & Investment Manager")
 
-    if not st.session_state['budget_data'].empty:
-        df = st.session_state['budget_data']
-        df['Date'] = pd.to_datetime(df['Date'])
-        grouped = df.groupby('Category')['Amount'].sum()
-        daily_sum = df.groupby('Date')['Amount'].sum()
+    with st.form("user_info_form"):
+        st.subheader("🔐 Enter Your Details")
+        name = st.text_input("Name")
+        budget = st.number_input("Monthly Budget ($)", min_value=0.0)
+        submit_user = st.form_submit_button("Save Details")
+        if submit_user:
+            st.session_state['user_info'] = {"name": name, "budget": budget}
+            st.success("Details saved!")
 
-        # Summary Stats
-        total_spent = df['Amount'].sum()
-        highest_category = grouped.idxmax()
-        highest_amount = grouped.max()
+    if st.session_state['user_info']:
+        st.markdown(f"### Hello, **{st.session_state['user_info']['name']}**!")
+        st.markdown(f"💰 Your Monthly Budget: **${st.session_state['user_info']['budget']}**")
 
-        st.metric("💵 Total Spent", f"${total_spent:.2f}")
-        st.metric("📌 Top Spending Category", f"{highest_category} (${highest_amount:.2f})")
+        if not st.session_state['budget_data'].empty:
+            df = st.session_state['budget_data']
+            df['Date'] = pd.to_datetime(df['Date'])
+            grouped = df.groupby('Category')['Amount'].sum()
 
-        col1, col2 = st.columns(2)
-        with col1:
-            st.subheader("🧁 Spending by Category")
-            fig1, ax1 = plt.subplots()
-            ax1.pie(grouped, labels=grouped.index, autopct='%1.1f%%', startangle=90)
-            ax1.axis('equal')
-            st.pyplot(fig1)
+            col1, col2 = st.columns(2)
+            with col1:
+                st.subheader("Total Spending by Category")
+                fig1, ax1 = plt.subplots()
+                ax1.pie(grouped, labels=grouped.index, autopct='%1.1f%%', startangle=90)
+                ax1.axis('equal')
+                st.pyplot(fig1)
 
-        with col2:
-            st.subheader("📅 Daily Spending Trend")
-            fig2, ax2 = plt.subplots()
-            ax2.plot(daily_sum.index, daily_sum.values, marker='o', color='green')
-            ax2.set_title("Daily Spending Over Time")
-            ax2.set_ylabel("Amount ($)")
-            st.pyplot(fig2)
+            with col2:
+                st.subheader("Spending Over Time")
+                daily_sum = df.groupby('Date')['Amount'].sum()
+                fig2, ax2 = plt.subplots()
+                ax2.plot(daily_sum.index, daily_sum.values, marker='o')
+                ax2.set_title("Daily Spending")
+                ax2.set_ylabel("Amount ($)")
+                st.pyplot(fig2)
 
-        st.markdown("---")
-        st.subheader("📊 Interactive Category Breakdown")
-        fig_bar = px.bar(
-            grouped.reset_index(),
-            x='Category',
-            y='Amount',
-            color='Amount',
-            color_continuous_scale='Blues',
-            labels={'Amount': 'Total Spent ($)', 'Category': 'Expense Category'},
-            title="Expense Breakdown by Category"
-        )
-        st.plotly_chart(fig_bar, use_container_width=True)
-
-        st.success("Tip: Consider reducing your expenses in the highest category!")
-
-    else:
-        st.info("No expenses yet. Add some in the ➕ Add Expense section to see insights!")
+            st.subheader("📊 Category Breakdown")
+            st.bar_chart(grouped)
+        else:
+            st.info("No expenses added yet. Head to 'Add Expense' to begin tracking.")
 
 # Add Expense Section
-elif section == "➕ Add Expense":
-    st.title("📝 Log a New Expense")
-    with st.form(key='expense_form'):
-        date = st.date_input("📅 Date")
-        category = st.selectbox("📂 Category", ["Food", "Transport", "Rent", "Entertainment", "Utilities", "Others"])
-        amount = st.number_input("💰 Amount (in $)", min_value=0.0, format="%.2f")
-        submit = st.form_submit_button(label='➕ Add Expense')
-
+elif section == "Add Expense":
+    st.title("➕ Add an Expense")
+    with st.form("expense_form"):
+        date = st.date_input("Date")
+        category = st.selectbox("Category", ["Food", "Transport", "Rent", "Entertainment", "Utilities", "Others"])
+        amount = st.number_input("Amount ($)", min_value=0.0, format="%.2f")
+        submit = st.form_submit_button("Add Expense")
         if submit:
             new_data = pd.DataFrame([[date, category, amount]], columns=['Date', 'Category', 'Amount'])
             st.session_state['budget_data'] = pd.concat([st.session_state['budget_data'], new_data], ignore_index=True)
-            st.success("✅ Expense added successfully!")
+            st.success("Expense added successfully!")
+
+# Investment Section
+elif section == "Investments":
+    st.title("📈 Investment Planner")
+    st.markdown("Use this section to simulate simple investments.")
+
+    amount_to_invest = st.number_input("Enter amount to invest ($)", min_value=100.0, step=50.0)
+    years = st.slider("Investment Duration (Years)", 1, 10, 3)
+    expected_rate = st.slider("Expected Annual Return (%)", 5, 15, 8)
+
+    if st.button("Calculate Future Value"):
+        future_value = amount_to_invest * ((1 + (expected_rate / 100)) ** years)
+        st.success(f"💹 In {years} years, your investment could grow to: ${future_value:,.2f}")
+
+# Nifty 50 Tracker Section
+elif section == "Nifty Tracker":
+    st.title("📊 Nifty 50 Index Tracker")
+    ticker = "^NSEI"
+    data = yf.download(ticker, period="1mo", interval="1d")
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=data.index, y=data['Close'], mode='lines+markers', name='Nifty 50'))
+    fig.update_layout(title='Nifty 50 - Last 1 Month', xaxis_title='Date', yaxis_title='Index Value')
+    st.plotly_chart(fig, use_container_width=True)
