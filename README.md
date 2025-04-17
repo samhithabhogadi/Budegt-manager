@@ -9,7 +9,7 @@ A simple budgeting app for students to track income, expenses, and savings. Buil
 - Summary with savings and tips
 
 ## Demo
-👉 Try it live: [https://your-username-your-repo-name.streamlit.app](https://your-username-your-repo-name.streamlit.app)
+👉 Try it live: https://github.com/samhithabhogadi/Budegt-stmanager.git
 
 ## Run Locally
 
@@ -17,7 +17,7 @@ A simple budgeting app for students to track income, expenses, and savings. Buil
 pip install -r requirements.txt
 streamlit run app.py
 pip install matplotlib
-streamlit run your_script_name.py
+streamlit run Buget-stmanager.py
 git add requirements.txt
 git commit -m "Add requirements.txt for Streamlit Cloud"
 git push
