@@ -17,3 +17,4 @@ A simple budgeting app for students to track income, expenses, and savings. Buil
 pip install -r requirements.txt
 streamlit run app.py
 
+streamlit run your_script_name.py
