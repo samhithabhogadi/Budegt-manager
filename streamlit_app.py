@@ -16,7 +16,7 @@ st.sidebar.markdown("---")
 st.sidebar.subheader("About")
 st.sidebar.info("""
 This app helps students manage their monthly expenses, track spending habits, and stay on budget.
-Created using
+Created using Python, Streamlit, Pandas, and Matplotlib.
 """)
 
 # Initialize session state
