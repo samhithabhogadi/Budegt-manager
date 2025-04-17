@@ -4,6 +4,25 @@ import matplotlib.pyplot as plt
 import numpy as np
 import yfinance as yf
 import plotly.graph_objs as go
+import random
+from datetime import datetime, timedelta
+
+# Dummy Data Setup
+if st.sidebar.checkbox("🧪 Load Sample Data"):
+    categories = ["Food", "Transport", "Rent", "Entertainment", "Utilities", "Others"]
+    today = datetime.today()
+
+    dummy_entries = []
+    for _ in range(30):
+        date = today - timedelta(days=random.randint(0, 30))
+        category = random.choice(categories)
+        amount = round(random.uniform(5.0, 100.0), 2)
+        dummy_entries.append([date, category, amount])
+
+    dummy_df = pd.DataFrame(dummy_entries, columns=["Date", "Category", "Amount"])
+    st.session_state['budget_data'] = pd.concat([st.session_state['budget_data'], dummy_df], ignore_index=True)
+    st.success("✅ Dummy data loaded successfully!")
+
 
 st.set_page_config(page_title="Student Budget & Investment Manager", layout="wide", page_icon="💸")
 
