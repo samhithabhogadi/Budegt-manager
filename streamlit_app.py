@@ -86,5 +86,3 @@ elif section == "Analytics":
         st.markdown("---")
         st.subheader("Category Breakdown")
         st.bar_chart(grouped)
-
-
