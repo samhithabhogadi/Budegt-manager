@@ -16,7 +16,7 @@ A simple budgeting app for students to track income, expenses, and savings. Buil
 ```bash
 # Clone the repository
 git clone https://github.com/samhithabhogadi/Budgett-stmanager
-cd Budegttstmanager
+cd Budegtt-stmanager
 
 # Install dependencies
 pip install -r requirements.txt
