@@ -87,10 +87,4 @@ elif section == "Analytics":
         st.subheader("Category Breakdown")
         st.bar_chart(grouped)
 
-# Footer
-st.markdown("""
-<style>
-    .css-18e3th9 { padding: 2rem; background: #f9f9f9; }
-    .css-1d391kg { background-color: #fff8dc; border-radius: 10px; padding: 10px; }
-</style>
-"", unsafe_allow_html=True)
+
