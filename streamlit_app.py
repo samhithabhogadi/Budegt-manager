@@ -134,9 +134,21 @@ else:
             st.subheader("📈 Income vs Expenses Over Time")
             line_data = user_data.dropna().sort_values("Date")
             fig = go.Figure()
-            fig.add_trace(go.Scatter(x=line_data['Date'], y=line_data['Income'], mode='lines+markers', name='Income'))
-            fig.add_trace(go.Scatter(x=line_data['Date'], y=line_data['Expenses'], mode='lines+markers', name='Expenses'))
+            fig.add_trace(go.Bar(x=line_data['Date'], y=line_data['Income'], name='Income'))
+            fig.add_trace(go.Bar(x=line_data['Date'], y=line_data['Expenses'], name='Expenses'))
+            fig.update_layout(barmode='group')
             st.plotly_chart(fig)
+
+            st.subheader("📊 Pie Chart: Expense vs Savings")
+            if total_income > 0:
+                pie_chart = pd.DataFrame({
+                    'Label': ['Expenses', 'Savings'],
+                    'Value': [total_expenses, total_savings]
+                })
+                pie_fig, pie_ax = plt.subplots()
+                pie_ax.pie(pie_chart['Value'], labels=pie_chart['Label'], autopct='%1.1f%%', startangle=90)
+                pie_ax.axis("equal")
+                st.pyplot(pie_fig)
 
             st.subheader("💡 Smart Insights")
             if total_income > 0:
