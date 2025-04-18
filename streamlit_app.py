@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import plotly.graph_objs as go
 from datetime import datetime
 import yfinance as yf
+import hashlib
 
 st.set_page_config(page_title="Student Wealth & Investment Hub", layout="wide", page_icon="💰")
 
@@ -13,7 +14,7 @@ def load_data():
     try:
         df = pd.read_csv("student_budget_data.csv", parse_dates=['Date'])
     except FileNotFoundError:
-        df = pd.DataFrame(columns=["Name", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age"])
+        df = pd.DataFrame(columns=["Username", "Password", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age"])
         df.to_csv("student_budget_data.csv", index=False)
     return df
 
@@ -21,20 +22,32 @@ def load_data():
 def save_data(df):
     df.to_csv("student_budget_data.csv", index=False)
 
+# ✅ Hashing Function for Password
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
 # ✅ Load the CSV data
 budget_data = load_data()
 
-# Username input on main screen
+# Username and password input on main screen
 st.header("👤 User Login")
-username = st.text_input("Enter your name", key="username")
+username = st.text_input("Enter your username", key="username")
+password = st.text_input("Enter your password", type="password", key="password")
 
-if not username:
-    st.warning("Please enter your name to continue.")
+if not username or not password:
+    st.warning("Please enter both username and password to continue.")
     st.stop()
+
+hashed_password = hash_password(password)
+user_data = budget_data[(budget_data['Username'] == username) & (budget_data['Password'] == hashed_password)]
+
+if user_data.empty and st.button("Register New User"):
+    st.success("✅ New user registered. You can now start adding your data.")
 
 # Sidebar Navigation
 st.sidebar.title("📚 Student Financial Toolkit")
 section = st.sidebar.radio("Navigate to", ["Home", "Add Entry", "Analysis", "Wealth Tracker", "Investment Suggestions", "Financial Education"])
+
 
 # Home Section
 if section == "Home":
