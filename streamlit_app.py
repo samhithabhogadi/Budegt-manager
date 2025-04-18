@@ -51,7 +51,7 @@ if section == "Home":
     st.subheader("📁 Your Budget Data")
     user_data = budget_data[budget_data['Name'] == username]
     if not user_data.empty:
-        latest_entry = user_data.sort_values("Date", ascending=False).head(1)
+        latest_entry = user_data.sort_values("Date", ascending=False)
         st.dataframe(latest_entry)
     else:
         st.info("No data available. Please add entries.")
@@ -59,23 +59,26 @@ if section == "Home":
 # Add Entry Section
 elif section == "Add Entry":
     st.title("➕ Add Financial Entry")
-    with st.form("entry_form"):
-        age = st.number_input("Age", min_value=5, max_value=25)
-        date = st.date_input("Date", value=datetime.today())
-        income = st.number_input("Monthly Income (₹)", min_value=0.0, format="%.2f")
-        expenses = st.number_input("Total Monthly Expenses (₹)", min_value=0.0, format="%.2f")
+    num_entries = st.number_input("How many entries do you want to add?", min_value=1, max_value=10, step=1)
 
-        saving_goals = st.text_input("Saving Goals")
-        risk_appetite = st.selectbox("Risk Appetite", ["Low", "Moderate", "High"])
-        investment_plan = st.selectbox("Preferred Investment Plan", ["None", "Piggy Bank", "Fixed Deposit", "Mutual Funds", "Stocks", "Crypto"])
-        submit = st.form_submit_button("Add Entry")
+    for i in range(int(num_entries)):
+        st.markdown(f"### Entry {i+1}")
+        with st.form(f"entry_form_{i}", clear_on_submit=True):
+            age = st.number_input("Age", min_value=5, max_value=25, key=f"age_{i}")
+            date = st.date_input("Date", value=datetime.today(), key=f"date_{i}")
+            income = st.number_input("Monthly Income (₹)", min_value=0.0, format="%.2f", key=f"income_{i}")
+            expenses = st.number_input("Total Monthly Expenses (₹)", min_value=0.0, format="%.2f", key=f"expenses_{i}")
+            saving_goals = st.text_input("Saving Goals", key=f"savings_{i}")
+            risk_appetite = st.selectbox("Risk Appetite", ["Low", "Moderate", "High"], key=f"risk_{i}")
+            investment_plan = st.selectbox("Preferred Investment Plan", ["None", "Piggy Bank", "Fixed Deposit", "Mutual Funds", "Stocks", "Crypto"], key=f"plan_{i}")
+            submit = st.form_submit_button("Add Entry")
 
-        if submit:
-            new_row = pd.DataFrame([[username, date, income, expenses, saving_goals, risk_appetite, investment_plan, age]],
-                                   columns=["Name", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age"])
-            budget_data = pd.concat([budget_data, new_row], ignore_index=True)
-            save_data(budget_data)
-            st.success("✅ Entry added successfully!")
+            if submit:
+                new_row = pd.DataFrame([[username, date, income, expenses, saving_goals, risk_appetite, investment_plan, age]],
+                                       columns=["Name", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age"])
+                budget_data = pd.concat([budget_data, new_row], ignore_index=True)
+                save_data(budget_data)
+                st.success(f"✅ Entry {i+1} added successfully!")
 
 # Analysis Section
 elif section == "Analysis":
