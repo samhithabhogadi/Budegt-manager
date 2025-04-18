@@ -84,11 +84,10 @@ elif section == "Add Entry":
         age = st.number_input("Age", min_value=5, max_value=25)
         date = st.date_input("Date", value=datetime.today())
         income = st.number_input("Monthly Income ($)", min_value=0.0, format="%.2f")
-        expenses = st.number_input("Total Monthly Expenses ($)", min_value=0.0, format="%.2f")
 
         st.markdown("### 💳 Enter Multiple Expense Items")
         expense_data = []
-        for i in range(3):  # Can adjust number of entries as needed
+        for i in range(3):  # Add more inputs if needed
             col1, col2 = st.columns([2, 1])
             with col1:
                 label = st.text_input(f"Expense {i+1} Description", key=f"label_{i}")
@@ -97,17 +96,29 @@ elif section == "Add Entry":
             if label and amount:
                 expense_data.append((label, amount))
 
+        total_expenses = sum(amount for _, amount in expense_data)
+
         saving_goals = st.text_input("Saving Goals")
         risk_appetite = st.selectbox("Risk Appetite", ["Low", "Moderate", "High"])
         investment_plan = st.selectbox("Preferred Investment Plan", ["None", "Piggy Bank", "Fixed Deposit", "Mutual Funds", "Stocks", "Crypto"])
-        assets = st.number_input("Total Assets ($)", min_value=0.0, format="%.2f")
-        liabilities = st.number_input("Total Liabilities ($)", min_value=0.0, format="%.2f")
+        
         submit = st.form_submit_button("Add Entry")
+
+        if submit:
+            new_row = pd.DataFrame([[
+                name, date, income, total_expenses, saving_goals,
+                risk_appetite, investment_plan, age, assets, liabilities
+            ]], columns=["Name", "Date", "Income", "Expenses", "Saving Goals",
+                         "Risk Appetite", "Investment Plan", "Age"])
+
+            budget_data = pd.concat([budget_data, new_row], ignore_index=True)
+            save_data(budget_data)
+            st.success("✅ Entry added successfully!")
 
         if submit:
             for label, amt in expense_data:
                 new_row = pd.DataFrame([[name, date, income, expenses, saving_goals, risk_appetite, investment_plan, age, assets, liabilities]],
-                                       columns=["Name", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Assets", "Liabilities"])
+                                       columns=["Name", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age"])
                 budget_data = pd.concat([budget_data, new_row], ignore_index=True)
             save_data(budget_data)
             st.success("✅ Entry added successfully!")
