@@ -114,27 +114,19 @@ elif section == "Add Entry":
                 save_data(budget_data)
                 st.success(f"✅ Entry {i+1} added successfully!")
 
-# ✅ Analysis Section
+# Inside the 'Analysis' section
 elif section == "Analysis":
     st.title("📊 Financial Overview")
-    student_data = budget_data[budget_data['Username'] == username]
+    student_data = budget_data[budget_data['Name'] == username]
     if not student_data.empty:
-        total_income = student_data['Income'].sum()
-        total_expenses = student_data['Expenses'].sum()
-        total_savings = total_income - total_expenses
-
-        st.metric("Total Income", f"₹{total_income:.2f}")
-        st.metric("Total Expenses", f"₹{total_expenses:.2f}")
-        st.metric("Estimated Savings", f"₹{total_savings:.2f}")
-
-        st.subheader("📈 Income vs Expenses Over Time")
-        line_data = student_data.sort_values("Date")
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(x=line_data['Date'], y=line_data['Income'], mode='lines+markers', name='Income'))
-        fig.add_trace(go.Scatter(x=line_data['Date'], y=line_data['Expenses'], mode='lines+markers', name='Expenses'))
-        st.plotly_chart(fig)
-
+        ...
         st.subheader("📊 Investment Plan with Current Prices")
         if student_data['Investment Plan'].str.contains("Stocks|Crypto").any():
-            stocks = ["AAPL", "
-
+            stocks = ["AAPL", "TSLA", "INFY.BO"]
+            for symbol in stocks:
+                ticker = yf.Ticker(symbol)
+                hist = ticker.history(period="1d")
+                if not hist.empty:
+                    st.write(f"**{symbol}**: ₹{hist['Close'].iloc[-1]:.2f}")
+        else:
+            st.info("No stock or crypto investments found.")
