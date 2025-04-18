@@ -102,14 +102,27 @@ else:
     # Add Entry Section
     elif section == "Add Entry":
         st.title("➕ Add Financial Entry")
+        st.markdown("Enter your financial data. First entry should include age and income. Following entries require only expense and date.")
+
+        entry_count = len(user_data)
+
         with st.form("entry_form"):
-            age = st.number_input("Age", min_value=5, max_value=35, step=1)
             date = st.date_input("Date", value=datetime.today())
-            income = st.number_input("Monthly Income (₹)", min_value=0.0, format="%.2f")
-            expenses = st.number_input("Daily Expense (₹)", min_value=0.0, format="%.2f")
-            saving_goals = st.text_input("Saving Goals")
-            risk_appetite = st.selectbox("Risk Appetite", ["Low", "Moderate", "High"])
-            investment_plan = st.selectbox("Preferred Investment Plan", ["None", "Piggy Bank", "Fixed Deposit", "Mutual Funds", "Stocks", "Crypto"])
+            if entry_count == 0:
+                age = st.number_input("Age", min_value=5, max_value=35, step=1)
+                income = st.number_input("Monthly Income (₹)", min_value=0.0, format="%.2f")
+                expenses = st.number_input("Daily Expense (₹)", min_value=0.0, format="%.2f")
+                saving_goals = st.text_input("Saving Goals")
+                risk_appetite = st.selectbox("Risk Appetite", ["Low", "Moderate", "High"])
+                investment_plan = st.selectbox("Preferred Investment Plan", ["None", "Piggy Bank", "Fixed Deposit", "Mutual Funds", "Stocks", "Crypto"])
+            else:
+                age = None
+                income = 0.0
+                saving_goals = ""
+                risk_appetite = ""
+                investment_plan = ""
+                expenses = st.number_input("Daily Expense (₹)", min_value=0.0, format="%.2f")
+
             submit = st.form_submit_button("Add Entry")
 
             if submit:
