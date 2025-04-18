@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import plotly.graph_objs as go
 from datetime import datetime
 
-st.set_page_config(page_title="Student Budget & Investment Manager", layout="wide", page_icon="💸")
+st.set_page_config(page_title="Student Wealth & Investment Hub", layout="wide", page_icon="💰")
 
 # ✅ Load Data Function - this handles file creation if not found
 @st.cache_data
@@ -17,9 +17,47 @@ def load_data():
     try:
         df = pd.read_csv("student_budget_data.csv", parse_dates=['Date'])
     except FileNotFoundError:
-        df = pd.DataFrame(columns=["Name", "Date", "Category", "Amount", "Pocket Money", "Investment Plan", "Age"])
+        df = pd.DataFrame(columns=["Name", "Date","income", "Expenses","Category", "Amount", "Saving Goals","Risk Appetite", "Investment Plan", "Age"])
         df.to_csv("student_budget_data.csv", index=False)
     return df
+
+# wm 
+net_worth = total_assets - total_liabilities
+st.metric("📈 Net Worth", f"${net_worth:.2f}")
+
+elif section == "Wealth Tracker":
+    st.title("💼 Personal Wealth Overview")
+
+    if not budget_data.empty:
+        selected_name = st.selectbox("Select Student", budget_data['Name'].unique())
+        student_data = budget_data[budget_data['Name'] == selected_name]
+
+        assets = student_data['Assets'].sum()
+        liabilities = student_data['Liabilities'].sum()
+        net_worth = assets - liabilities
+
+        st.metric("Total Assets", f"${assets:.2f}")
+        st.metric("Total Liabilities", f"${liabilities:.2f}")
+        st.metric("Net Worth", f"${net_worth:.2f}")
+
+        st.subheader("Wealth Composition")
+        pie = pd.DataFrame({
+            'Type': ['Assets', 'Liabilities'],
+            'Value': [assets, liabilities]
+        })
+        fig, ax = plt.subplots()
+        ax.pie(pie['Value'], labels=pie['Type'], autopct='%1.1f%%', startangle=90)
+        st.pyplot(fig)
+    else:
+        st.warning("No data to display.")
+# risk app 
+risk = st.selectbox("What's your risk appetite?", ["Low", "Moderate", "High"])
+if risk == "Low":
+    st.info("Recommended: Fixed Deposits, PPF, Bonds")
+elif risk == "Moderate":
+    st.info("Recommended: Mutual Funds, Index Funds")
+else:
+    st.info("Recommended: Stocks, Crypto, Real Estate")
 
 # ✅ Save Data Function
 def save_data(df):
