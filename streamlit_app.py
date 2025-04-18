@@ -93,8 +93,9 @@ else:
     # Add Entry Section
     elif section == "Add Entry":
         st.title("➕ Add Financial Entry")
-        with st.form("multi_entry_form"):
-            st.subheader("💼 First Entry (Full Form)")
+
+        with st.form("entry_form"):
+            st.subheader("💼 First Entry")
             age = st.number_input("Age", min_value=5, max_value=25)
             date = st.date_input("Date", value=datetime.today())
             income = st.number_input("Monthly Income (₹)", min_value=0.0, format="%.2f")
@@ -109,31 +110,27 @@ else:
         if submit:
             current_income = income
             total_expense = expenses
-            # First row full entry
+
+            # First row
             new_row = pd.DataFrame([[username, hashed_password, date, current_income, total_expense, saving_goals, risk_appetite, investment_plan, age, expense_category]],
                                    columns=["Username", "Password", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Expense Category"])
             budget_data = pd.concat([budget_data, new_row], ignore_index=True)
 
-            # Additional entries for categories
-            while add_more:
-                st.write("---")
-                with st.form(key=f"extra_entry_form_{datetime.now()}"):
-                    st.subheader("📅 Additional Expense Entry")
-                    add_date = st.date_input("Date", value=datetime.today(), key="add_date")
-                    extra_category = st.text_input("Expense Category", key="extra_cat")
-                    extra_expense = st.number_input("Amount (₹)", min_value=0.0, format="%.2f", key="extra_amt")
-                    more_submit = st.form_submit_button("Submit Extra Entry")
-
-                    if more_submit:
-                        current_income -= extra_expense
-                        new_extra_row = pd.DataFrame([[username, hashed_password, add_date, 0.0, extra_expense, "", "", "", age, extra_category]],
-                                                     columns=["Username", "Password", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Expense Category"])
-                        budget_data = pd.concat([budget_data, new_extra_row], ignore_index=True)
-                        save_data(budget_data)
-                        st.success(f"✅ Entry for {extra_category} added. Remaining income: ₹{current_income:.2f}")
+            # Collect multiple entries using expander
+            if add_more:
+                with st.expander("➕ Add More Expenses"):
+                    more_expenses = st.experimental_data_editor(pd.DataFrame(columns=["Expense Category", "Amount (₹)"]))
+                    if not more_expenses.empty:
+                        for _, row in more_expenses.iterrows():
+                            extra_expense = float(row["Amount (₹)"])
+                            extra_category = row["Expense Category"]
+                            current_income -= extra_expense
+                            new_extra_row = pd.DataFrame([[username, hashed_password, datetime.today(), 0.0, extra_expense, "", "", "", age, extra_category]],
+                                                         columns=["Username", "Password", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Expense Category"])
+                            budget_data = pd.concat([budget_data, new_extra_row], ignore_index=True)
 
             save_data(budget_data)
-            st.success("✅ Main entry added successfully!")
+            st.success(f"✅ Entry(ies) saved! Remaining Income: ₹{current_income:.2f}")
 
     # Analysis Section
     elif section == "Analysis":
@@ -195,7 +192,7 @@ else:
         elif age_input <= 21:
             st.info("🧑 **18–21 years**\n- 📈 Mutual Funds\n- 📚 Stock Market Basics\n- 💰 Digital Gold\n✅ *Build financial habits*")
         else:
-            st.info("👨‍🎓 **22–35 years**\n- 📉 Stocks\n- 🪙 Crypto (risky)\n- 🛁 NPS\n- 🌳 PPF\n✅ *Plan long-term & diversify*")
+            st.info("👨‍🎓 **22–35 years**\n- 📉 Stocks\n- 🪙 Crypto (risky)\n- 💼 NPS\n- 🌳 PPF\n✅ *Plan long-term & diversify*")
 
     elif section == "Financial Education":
         st.title("📚 Financial Education")
