@@ -120,6 +120,73 @@ else:
                     save_data(budget_data)
                     st.success(f"✅ Entry {i+1} added successfully!")
 
+    # Analysis Section
+    elif section == "Analysis":
+        st.title("📊 Financial Overview")
+        if not user_data.empty:
+            total_income = user_data['Income'].sum()
+            total_expenses = user_data['Expenses'].sum()
+            total_savings = total_income - total_expenses
+
+            st.metric("Total Income", f"₹{total_income:.2f}")
+            st.metric("Total Expenses", f"₹{total_expenses:.2f}")
+            st.metric("Estimated Savings", f"₹{total_savings:.2f}")
+
+            st.subheader("📈 Income vs Expenses Over Time")
+            line_data = user_data.sort_values("Date")
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(x=line_data['Date'], y=line_data['Income'], mode='lines+markers', name='Income'))
+            fig.add_trace(go.Scatter(x=line_data['Date'], y=line_data['Expenses'], mode='lines+markers', name='Expenses'))
+            st.plotly_chart(fig)
+        else:
+            st.info("No data available.")
+
+    # Wealth Tracker Section
+    elif section == "Wealth Tracker":
+        st.title("💼 Expense vs Remaining Wealth")
+        if not user_data.empty:
+            total_income = user_data['Income'].sum()
+            total_expenses = user_data['Expenses'].sum()
+            remaining = total_income - total_expenses
+
+            st.metric("Total Income", f"₹{total_income:.2f}")
+            st.metric("Total Expenses", f"₹{total_expenses:.2f}")
+            st.metric("Remaining Wealth", f"₹{remaining:.2f}")
+
+            if total_income > 0:
+                pie = pd.DataFrame({
+                    'Type': ['Expenses', 'Remaining'],
+                    'Value': [total_expenses, remaining]
+                })
+                fig, ax = plt.subplots()
+                ax.pie(pie['Value'], labels=pie['Type'], autopct='%1.1f%%', startangle=90)
+                ax.axis("equal")
+                st.pyplot(fig)
+            else:
+                st.info("Insufficient income data to display chart.")
+        else:
+            st.warning("No data to display.")
+
+    # Investment Suggestions
+    elif section == "Investment Suggestions":
+        st.title("📈 Age-based Investment Suggestions")
+        st.markdown("""
+        - **5-12 years**: Piggy Banks, Recurring Deposits (with parents)
+        - **13-17 years**: Savings Account, Mutual Funds (with guardians), SIPs
+        - **18-21 years**: Mutual Funds, Stock Market Basics, Digital Gold
+        - **22-35 years**: Full-fledged Stocks, Crypto (carefully), NPS, PPF
+        """)
+
+        age_input = st.slider("Select Age for Suggestions", 5, 35, 18)
+        if age_input <= 12:
+            st.info("Recommended: Piggy Bank, Recurring Deposit")
+        elif age_input <= 17:
+            st.info("Recommended: Savings Account, Mutual Funds (with guardians), SIPs")
+        elif age_input <= 21:
+            st.info("Recommended: Mutual Funds, Stock Market Basics, Digital Gold")
+        else:
+            st.info("Recommended: Stocks, Crypto (carefully), NPS, PPF")
+
     # Financial Education Section
     elif section == "Financial Education":
         st.title("📖 Financial Education")
