@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import plotly.graph_objs as go
 from datetime import datetime
+import yfinance as yf
 
 st.set_page_config(page_title="Student Wealth & Investment Hub", layout="wide", page_icon="💰")
 
@@ -61,6 +62,7 @@ elif section == "Add Entry":
     st.title("➕ Add Daily Financial Entry")
     num_entries = st.number_input("How many entries do you want to add?", min_value=1, max_value=10, step=1)
 
+    new_entries = []
     for i in range(int(num_entries)):
         st.markdown(f"### Entry {i+1}")
         with st.form(f"entry_form_{i}", clear_on_submit=True):
@@ -100,6 +102,17 @@ elif section == "Analysis":
         fig.add_trace(go.Scatter(x=line_data['Date'], y=line_data['Expenses'], mode='lines+markers', name='Expenses'))
         st.plotly_chart(fig)
 
+        st.subheader("📊 Investment Plan with Current Prices")
+        if student_data['Investment Plan'].str.contains("Stocks|Crypto").any():
+            stocks = ["AAPL", "TSLA", "INFY.BO"]  # You can customize this list
+            for symbol in stocks:
+                ticker = yf.Ticker(symbol)
+                hist = ticker.history(period="1d")
+                if not hist.empty:
+                    st.write(f"**{symbol}**: ₹{hist['Close'].iloc[-1]:.2f}")
+        else:
+            st.info("No stock or crypto investments found.")
+
     else:
         st.info("No data available.")
 
@@ -137,7 +150,7 @@ elif section == "Investment Suggestions":
     - **5-12 years**: Piggy Banks, Recurring Deposits (with parents)
     - **13-17 years**: Savings Account, Mutual Funds (with guardians), SIPs
     - **18-21 years**: Mutual Funds, Stock Market Basics, Digital Gold
-    - **22-25 years**: Full-fledged Stocks, NPS, PPF
+    - **22-25 years**: Full-fledged Stocks, Crypto (carefully), NPS, PPF
     - **26-35 years**: Diversified Stocks, Mutual Funds, ELSS, Retirement Funds
     """)
 
@@ -149,7 +162,7 @@ elif section == "Investment Suggestions":
     elif age_input <= 21:
         st.info("Recommended: Mutual Funds, Stock Market Basics, Digital Gold")
     elif age_input <= 25:
-        st.info("Recommended: Stocks, NPS, PPF")
+        st.info("Recommended: Stocks, Crypto (cautiously), NPS, PPF")
     else:
         st.info("Recommended: Diversified Portfolio, Mutual Funds, ELSS, Retirement Schemes")
 
@@ -160,7 +173,7 @@ elif section == "Investment Suggestions":
     elif risk == "Moderate":
         st.info("Recommended: Mutual Funds, Index Funds")
     else:
-        st.info("Recommended: Stocks, Real Estate")
+        st.info("Recommended: Stocks, Crypto, Real Estate")
 
 # Financial Education Section
 elif section == "Financial Education":
