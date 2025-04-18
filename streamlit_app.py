@@ -26,10 +26,14 @@ def save_data(df):
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-# ✅ Load the CSV data
+# ✅ Load CSV data and ensure columns
 budget_data = load_data()
+required_columns = {"Username", "Password"}
+if not required_columns.issubset(budget_data.columns):
+    st.error("Data file is missing necessary columns. Please delete or fix the CSV file.")
+    st.stop()
 
-# Username and password input on main screen
+# ✅ Login Section
 st.header("👤 User Login")
 username = st.text_input("Enter your username", key="username")
 password = st.text_input("Enter your password", type="password", key="password")
@@ -39,8 +43,11 @@ if not username or not password:
     st.stop()
 
 hashed_password = hash_password(password)
+
+# ✅ User Filtering
 user_data = budget_data[(budget_data['Username'] == username) & (budget_data['Password'] == hashed_password)]
 
+# ✅ Register if new
 if user_data.empty and st.button("Register New User"):
     new_user = pd.DataFrame([[username, hashed_password, None, 0.0, 0.0, "", "", "", None]],
                              columns=["Username", "Password", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age"])
