@@ -162,7 +162,14 @@ else:
             total_income = user_data['Income'].sum()
             total_expenses = user_data['Expenses'].sum()
             remaining = total_income - total_expenses
-
+if remaining > 10000:
+    st.markdown("""
+    <div style='padding: 1rem; background-color: #e0ffe0; border-left: 5px solid #28a745; border-radius: 10px;'>
+        <h4 style='color: #28a745;'>🎉 Congrats!</h4>
+        <p>Your savings have crossed ₹10,000! Keep up the great financial discipline. 💪</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
             st.metric("Total Income", f"₹{total_income:.2f}")
             st.metric("Total Expenses", f"₹{total_expenses:.2f}")
             st.metric("Remaining Wealth", f"₹{remaining:.2f}")
