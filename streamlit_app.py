@@ -10,22 +10,22 @@ import plotly.graph_objs as go
 from datetime import datetime
 
 st.set_page_config(page_title="Student Budget & Investment Manager", layout="wide", page_icon="💸")
-budget_data = load_data()
-# Load Data Function
+
+# ✅ Load Data Function - this handles file creation if not found
 @st.cache_data
 def load_data():
     try:
         df = pd.read_csv("student_budget_data.csv", parse_dates=['Date'])
     except FileNotFoundError:
         df = pd.DataFrame(columns=["Name", "Date", "Category", "Amount", "Pocket Money", "Investment Plan", "Age"])
-        df.to_csv("student_budget_data.csv", index=False)  # Save the empty file
+        df.to_csv("student_budget_data.csv", index=False)
     return df
 
-# Save Data Function
+# ✅ Save Data Function
 def save_data(df):
     df.to_csv("student_budget_data.csv", index=False)
 
-# Load existing or create new data
+# ✅ Load the CSV data after defining the functions above
 budget_data = load_data()
 
 # Sidebar Navigation
