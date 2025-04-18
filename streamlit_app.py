@@ -23,9 +23,10 @@ def save_data(df):
 # ✅ Load the CSV data
 budget_data = load_data()
 
-# User Session
-st.sidebar.header("👤 User Login")
-username = st.sidebar.text_input("Enter your name", key="username")
+
+# Username input on main screen
+st.header("👤 User Login")
+username = st.text_input("Enter your name", key="username")
 
 if not username:
     st.warning("Please enter your name to continue.")
