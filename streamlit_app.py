@@ -3,7 +3,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import plotly.graph_objs as go
 from datetime import datetime
-import yfinance as yf
 import hashlib
 
 st.set_page_config(page_title="Student Wealth & Investment Hub", layout="wide", page_icon="💰")
@@ -11,7 +10,7 @@ st.set_page_config(page_title="Student Wealth & Investment Hub", layout="wide", 
 # ✅ Load Data Function
 @st.cache_data
 def load_data():
-    expected_columns = ["Username", "Password", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age"]
+    expected_columns = ["Username", "Password", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Expense Category"]
     try:
         df = pd.read_csv("student_budget_data.csv", parse_dates=['Date'])
         if not all(col in df.columns for col in expected_columns):
@@ -58,8 +57,8 @@ if not st.session_state.authenticated:
         if username and password:
             hashed_password = hash_password(password)
             if username not in budget_data['Username'].values:
-                new_user = pd.DataFrame([[username, hashed_password, None, 0.0, 0.0, "", "", "", None]],
-                                         columns=["Username", "Password", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age"])
+                new_user = pd.DataFrame([[username, hashed_password, None, 0.0, 0.0, "", "", "", None, ""]],
+                                         columns=["Username", "Password", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Expense Category"])
                 budget_data = pd.concat([budget_data, new_user], ignore_index=True)
                 save_data(budget_data)
                 st.session_state.authenticated = True
@@ -91,7 +90,8 @@ else:
         Hello **{username}**, welcome back!
 
         Use this app to:
-        - Track **daily expenses** and **monthly income**
+        - Track **monthly income**
+        - Log **daily expenses** with categories
         - Set **saving goals**
         - Monitor your **investment preferences**
         - Visualize financial trends
@@ -102,7 +102,7 @@ else:
     # Add Entry Section
     elif section == "Add Entry":
         st.title("➕ Add Financial Entry")
-        st.markdown("Enter your financial data. First entry should include age and income. Following entries require only expense and date.")
+        st.markdown("Enter your financial data. First entry includes income, age, etc. Later entries only need daily expense updates.")
 
         entry_count = len(user_data)
 
@@ -111,10 +111,11 @@ else:
             if entry_count == 0:
                 age = st.number_input("Age", min_value=5, max_value=35, step=1)
                 income = st.number_input("Monthly Income (₹)", min_value=0.0, format="%.2f")
-                expenses = st.number_input("Daily Expense (₹)", min_value=0.0, format="%.2f")
+                expenses = st.number_input("Estimated Monthly Expenses (₹)", min_value=0.0, format="%.2f")
                 saving_goals = st.text_input("Saving Goals")
                 risk_appetite = st.selectbox("Risk Appetite", ["Low", "Moderate", "High"])
                 investment_plan = st.selectbox("Preferred Investment Plan", ["None", "Piggy Bank", "Fixed Deposit", "Mutual Funds", "Stocks", "Crypto"])
+                category = "Initial Setup"
             else:
                 age = None
                 income = 0.0
@@ -122,12 +123,13 @@ else:
                 risk_appetite = ""
                 investment_plan = ""
                 expenses = st.number_input("Daily Expense (₹)", min_value=0.0, format="%.2f")
+                category = st.text_input("Expense Category")
 
             submit = st.form_submit_button("Add Entry")
 
             if submit:
-                new_row = pd.DataFrame([[username, hashed_password, date, income, expenses, saving_goals, risk_appetite, investment_plan, age]],
-                                       columns=["Username", "Password", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age"])
+                new_row = pd.DataFrame([[username, hashed_password, date, income, expenses, saving_goals, risk_appetite, investment_plan, age, category]],
+                                       columns=["Username", "Password", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Expense Category"])
                 budget_data = pd.concat([budget_data, new_row], ignore_index=True)
                 save_data(budget_data)
                 st.success("✅ Entry added successfully!")
@@ -140,56 +142,30 @@ else:
             total_expenses = user_data['Expenses'].sum()
             total_savings = total_income - total_expenses
 
-            st.metric("Total Income (₹)", f"₹{total_income:.2f}")
-            st.metric("Total Expenses (₹)", f"₹{total_expenses:.2f}")
-            st.metric("Estimated Savings (₹)", f"₹{total_savings:.2f}")
+            st.metric("Total Income", f"₹{total_income:.2f}")
+            st.metric("Total Expenses", f"₹{total_expenses:.2f}")
+            st.metric("Estimated Savings", f"₹{total_savings:.2f}")
 
             st.subheader("📈 Income vs Expenses Over Time")
-            line_data = user_data.dropna().sort_values("Date")
+            line_data = user_data.sort_values("Date")
             fig = go.Figure()
-            fig.add_trace(go.Bar(x=line_data['Date'], y=line_data['Income'], name='Income'))
-            fig.add_trace(go.Bar(x=line_data['Date'], y=line_data['Expenses'], name='Expenses'))
-            fig.update_layout(barmode='group')
+            fig.add_trace(go.Scatter(x=line_data['Date'], y=line_data['Income'], mode='lines+markers', name='Income'))
+            fig.add_trace(go.Scatter(x=line_data['Date'], y=line_data['Expenses'], mode='lines+markers', name='Expenses'))
             st.plotly_chart(fig)
-
-            st.subheader("📊 Pie Chart: Expense vs Savings")
-            if total_income > 0:
-                pie_chart = pd.DataFrame({
-                    'Label': ['Expenses', 'Savings'],
-                    'Value': [total_expenses, total_savings]
-                })
-                pie_fig, pie_ax = plt.subplots()
-                pie_ax.pie(pie_chart['Value'], labels=pie_chart['Label'], autopct='%1.1f%%', startangle=90)
-                pie_ax.axis("equal")
-                st.pyplot(pie_fig)
-
-            st.subheader("💡 Smart Insights")
-            if total_income > 0:
-                savings_rate = (total_savings / total_income) * 100
-                st.info(f"💸 You are saving {savings_rate:.2f}% of your income.")
-
-                if savings_rate < 10:
-                    st.warning("Consider reducing expenses or increasing income. Try creating a monthly budget.")
-                elif savings_rate < 30:
-                    st.info("You're doing okay! You might consider SIPs or hybrid mutual funds.")
-                else:
-                    st.success("Excellent saving rate! You could explore higher-yield investments like stocks or NPS.")
-            else:
-                st.info("Please add income to get insights.")
         else:
-            st.info("No data available yet.")
+            st.info("No data available.")
 
     # Wealth Tracker Section
     elif section == "Wealth Tracker":
-        st.title("💼 Expense vs Remaining Wealth")
+        st.title("💼 Expense vs Savings Tracker")
         if not user_data.empty:
             total_income = user_data['Income'].sum()
             total_expenses = user_data['Expenses'].sum()
             remaining = total_income - total_expenses
 
-            st.metric("Total Income (₹)", f"₹{total_income:.2f}")
-            st.metric("Total Expenses (₹)", f"₹{total_expenses:.2f}")
-            st.metric("Remaining Wealth (₹)", f"₹{remaining:.2f}")
+            st.metric("Total Income", f"₹{total_income:.2f}")
+            st.metric("Total Expenses", f"₹{total_expenses:.2f}")
+            st.metric("Remaining Wealth", f"₹{remaining:.2f}")
 
             if total_income > 0:
                 pie = pd.DataFrame({
@@ -201,7 +177,7 @@ else:
                 ax.axis("equal")
                 st.pyplot(fig)
             else:
-                st.info("Add income to see chart.")
+                st.info("Insufficient income data to display chart.")
         else:
             st.warning("No data to display.")
 
@@ -209,44 +185,44 @@ else:
     elif section == "Investment Suggestions":
         st.title("📈 Age-based Investment Suggestions")
         st.markdown("""
-        - **5–12 years**: Piggy Banks, Recurring Deposits (with parents)
-        - **13–17 years**: Savings Account, Mutual Funds (with guardians), SIPs
-        - **18–21 years**: Mutual Funds, Stock Market Basics, Digital Gold
-        - **22–35 years**: Stocks, Crypto (carefully), NPS, PPF
+        - **5-12 years**: Piggy Banks, Recurring Deposits (with parents)
+        - **13-17 years**: Savings Account, Mutual Funds (with guardians), SIPs
+        - **18-21 years**: Mutual Funds, Stock Market Basics, Digital Gold
+        - **22-35 years**: Full-fledged Stocks, Crypto (carefully), NPS, PPF
         """)
         age_input = st.slider("Select Age for Suggestions", 5, 35, 18)
         if age_input <= 12:
             st.info("Recommended: Piggy Bank, Recurring Deposit")
         elif age_input <= 17:
-            st.info("Recommended: Mutual Funds with guardian, SIPs, Savings Account")
+            st.info("Recommended: Savings Account, Mutual Funds (w/ guardians), SIPs")
         elif age_input <= 21:
-            st.info("Recommended: Stock Basics, Digital Gold, SIPs")
+            st.info("Recommended: Mutual Funds, Stock Market Basics, Digital Gold")
         else:
-            st.info("Recommended: Diversified Portfolio – Stocks, Mutual Funds, PPF, NPS")
+            st.info("Recommended: Stocks, Crypto (cautiously), PPF, NPS")
 
     # Financial Education
     elif section == "Financial Education":
-        st.title("📘 Financial Education Center")
-        st.subheader("💹 What is a Mutual Fund?")
+        st.title("📚 Financial Education")
         st.markdown("""
-        A **Mutual Fund** pools money from investors to invest in stocks, bonds, or other assets.
-        - **Types**: Equity, Debt, Hybrid, Index, Liquid Funds
-        """)
+        **What is a Mutual Fund?**
+        - A professionally managed investment fund that pools money from many investors.
 
-        st.subheader("📊 What is a Stock?")
-        st.markdown("""
-        A **Stock** represents a share in the ownership of a company.
-        - **Types**: Common Stock, Preferred Stock, Growth Stock, Dividend Stock
-        """)
+        **Types of Mutual Funds:**
+        - Equity Funds, Debt Funds, Hybrid Funds, Index Funds
 
-        st.subheader("📈 What is Compounding?")
-        st.markdown("""
-        Compounding is the process where the value of an investment increases because the earnings also earn returns.
-        """)
+        **What are Stocks?**
+        - Shares that represent ownership in a company.
 
-        st.subheader("🧠 What is Risk Appetite?")
-        st.markdown("""
-        Risk appetite is the amount of risk you're willing to take for potential returns.
-        - **Low**: Prefer stable returns (FDs, Bonds)
-        - **High**: Comfortable with volatility (Stocks, Crypto)
+        **Types of Stocks:**
+        - **Blue Chip Stocks**: Large, reputable companies; low risk. Ideal for conservative investors.
+        - **Growth Stocks**: Companies expected to grow rapidly; moderate to high risk. Best for long-term investors.
+        - **Penny Stocks**: Very low-priced, speculative; high risk. Suitable only for aggressive investors.
+        - **Dividend Stocks**: Pay regular income; moderate risk. Ideal for income-seeking investors.
+        - **Cyclical Stocks**: Dependent on economic cycles; variable risk. Suitable for market-savvy investors.
+
+        **What is Risk Appetite?**
+        - Your willingness to take investment risks for potential higher returns.
+
+        **What is Compounding?**
+        - Earning returns on your initial investment and the returns it generates over time.
         """)
