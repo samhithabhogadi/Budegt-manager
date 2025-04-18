@@ -6,7 +6,7 @@ from datetime import datetime
 
 st.set_page_config(page_title="Student Wealth & Investment Hub", layout="wide", page_icon="💰")
 
-# ✅ Load Data Function - this handles file creation if not found
+# ✅ Load Data Function
 @st.cache_data
 def load_data():
     try:
@@ -78,9 +78,10 @@ if section == "Home":
     - Finance education sidebar
     """)
 
-    st.subheader("📁 Current Budget Data")
-    if not budget_data.empty:
-        st.dataframe(budget_data)
+    st.subheader("📁 Your Budget Data")
+    user_data = budget_data[budget_data['Name'] == username]
+    if not user_data.empty:
+        st.dataframe(user_data)
     else:
         st.info("No data available. Please add entries.")
 
@@ -88,56 +89,31 @@ if section == "Home":
 elif section == "Add Entry":
     st.title("➕ Add Financial Entry")
     with st.form("entry_form"):
-        name = st.text_input("Student Name")
         age = st.number_input("Age", min_value=5, max_value=25)
         date = st.date_input("Date", value=datetime.today())
         income = st.number_input("Monthly Income ($)", min_value=0.0, format="%.2f")
-
-        st.markdown("### 💳 Enter Multiple Expense Items")
-        expense_data = []
-        for i in range(3):  # Add more inputs if needed
-            col1, col2 = st.columns([2, 1])
-            with col1:
-                label = st.text_input(f"Expense {i+1} Description", key=f"label_{i}")
-            with col2:
-                amount = st.number_input(f"Amount ${i+1}", min_value=0.0, format="%.2f", key=f"amount_{i}")
-            if label and amount:
-                expense_data.append((label, amount))
-
-        total_expenses = sum(amount for _, amount in expense_data)
+        expenses = st.number_input("Total Monthly Expenses ($)", min_value=0.0, format="%.2f")
 
         saving_goals = st.text_input("Saving Goals")
         risk_appetite = st.selectbox("Risk Appetite", ["Low", "Moderate", "High"])
         investment_plan = st.selectbox("Preferred Investment Plan", ["None", "Piggy Bank", "Fixed Deposit", "Mutual Funds", "Stocks", "Crypto"])
-        
+        assets = st.number_input("Total Assets ($)", min_value=0.0, format="%.2f")
+        liabilities = st.number_input("Total Liabilities ($)", min_value=0.0, format="%.2f")
         submit = st.form_submit_button("Add Entry")
 
         if submit:
-            new_row = pd.DataFrame([[
-                name, date, income, total_expenses, saving_goals,
-                risk_appetite, investment_plan, age, assets, liabilities
-            ]], columns=["Name", "Date", "Income", "Expenses", "Saving Goals",
-                         "Risk Appetite", "Investment Plan", "Age"])
-
+            new_row = pd.DataFrame([[username, date, income, expenses, saving_goals, risk_appetite, investment_plan, age, assets, liabilities]],
+                                   columns=["Name", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Assets", "Liabilities"])
+            budget_data = budget_data[budget_data['Name'] != username]  # Remove old user data
             budget_data = pd.concat([budget_data, new_row], ignore_index=True)
-            save_data(budget_data)
-            st.success("✅ Entry added successfully!")
-
-        if submit:
-            for label, amt in expense_data:
-                new_row = pd.DataFrame([[name, date, income, expenses, saving_goals, risk_appetite, investment_plan, age, assets, liabilities]],
-                                       columns=["Name", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age"])
-                budget_data = pd.concat([budget_data, new_row], ignore_index=True)
             save_data(budget_data)
             st.success("✅ Entry added successfully!")
 
 # Analysis Section
 elif section == "Analysis":
     st.title("📊 Financial Overview")
-    if not budget_data.empty:
-        selected_name = st.selectbox("Select Student", budget_data['Name'].unique())
-        student_data = budget_data[budget_data['Name'] == selected_name]
-
+    student_data = budget_data[budget_data['Name'] == username]
+    if not student_data.empty:
         total_income = student_data['Income'].sum()
         total_expenses = student_data['Expenses'].sum()
         total_savings = total_income - total_expenses
@@ -149,12 +125,11 @@ elif section == "Analysis":
     else:
         st.info("No data available.")
 
+# Wealth Tracker Section
 elif section == "Wealth Tracker":
     st.title("💼 Expense vs Remaining Wealth")
-    if not budget_data.empty:
-        selected_name = st.selectbox("Select Student", budget_data['Name'].unique())
-        student_data = budget_data[budget_data['Name'] == selected_name]
-
+    student_data = budget_data[budget_data['Name'] == username]
+    if not student_data.empty:
         total_income = student_data['Income'].sum()
         total_expenses = student_data['Expenses'].sum()
         remaining = total_income - total_expenses
