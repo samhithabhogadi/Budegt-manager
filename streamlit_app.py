@@ -10,8 +10,7 @@ st.set_page_config(page_title="Student Wealth & Investment Hub", layout="wide", 
 # ✅ Load Data Function
 @st.cache_data
 def load_data():
-    expected_columns = ["Username", "Password", "Date", "Income", "Expenses", "Saving Goals",
-                        "Risk Appetite", "Investment Plan", "Age", "Expense Category"]
+    expected_columns = ["Username", "Password", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Expense Category"]
     try:
         df = pd.read_csv("student_budget_data.csv", parse_dates=['Date'])
         if not all(col in df.columns for col in expected_columns):
@@ -59,8 +58,7 @@ if not st.session_state.authenticated:
             hashed_password = hash_password(password)
             if username not in budget_data['Username'].values:
                 new_user = pd.DataFrame([[username, hashed_password, None, 0.0, 0.0, "", "", "", None, ""]],
-                                         columns=["Username", "Password", "Date", "Income", "Expenses", "Saving Goals",
-                                                  "Risk Appetite", "Investment Plan", "Age", "Expense Category"])
+                                         columns=["Username", "Password", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Expense Category"])
                 budget_data = pd.concat([budget_data, new_user], ignore_index=True)
                 save_data(budget_data)
                 st.session_state.authenticated = True
@@ -95,26 +93,47 @@ else:
     # Add Entry Section
     elif section == "Add Entry":
         st.title("➕ Add Financial Entry")
-        with st.form("entry_form"):
+        with st.form("multi_entry_form"):
+            st.subheader("💼 First Entry (Full Form)")
             age = st.number_input("Age", min_value=5, max_value=25)
             date = st.date_input("Date", value=datetime.today())
-            income = st.number_input("Monthly Income ($)", min_value=0.0, format="%.2f")
-            expenses = st.number_input("Total Monthly Expenses ($)", min_value=0.0, format="%.2f")
+            income = st.number_input("Monthly Income (₹)", min_value=0.0, format="%.2f")
+            expenses = st.number_input("Total Monthly Expenses (₹)", min_value=0.0, format="%.2f")
             saving_goals = st.text_input("Saving Goals")
             risk_appetite = st.selectbox("Risk Appetite", ["Low", "Moderate", "High"])
             investment_plan = st.selectbox("Preferred Investment Plan", ["None", "Piggy Bank", "Fixed Deposit", "Mutual Funds", "Stocks", "Crypto"])
             expense_category = st.text_input("Expense Category")
-
+            add_more = st.checkbox("Add more expense entries")
             submit = st.form_submit_button("Add Entry")
 
-            if submit:
-                new_row = pd.DataFrame([[username, hashed_password, date, income, expenses,
-                                         saving_goals, risk_appetite, investment_plan, age, expense_category]],
-                                       columns=["Username", "Password", "Date", "Income", "Expenses", "Saving Goals",
-                                                "Risk Appetite", "Investment Plan", "Age", "Expense Category"])
-                budget_data = pd.concat([budget_data, new_row], ignore_index=True)
-                save_data(budget_data)
-                st.success("✅ Entry added successfully!")
+        if submit:
+            current_income = income
+            total_expense = expenses
+            # First row full entry
+            new_row = pd.DataFrame([[username, hashed_password, date, current_income, total_expense, saving_goals, risk_appetite, investment_plan, age, expense_category]],
+                                   columns=["Username", "Password", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Expense Category"])
+            budget_data = pd.concat([budget_data, new_row], ignore_index=True)
+
+            # Additional entries for categories
+            while add_more:
+                st.write("---")
+                with st.form(key=f"extra_entry_form_{datetime.now()}"):
+                    st.subheader("📅 Additional Expense Entry")
+                    add_date = st.date_input("Date", value=datetime.today(), key="add_date")
+                    extra_category = st.text_input("Expense Category", key="extra_cat")
+                    extra_expense = st.number_input("Amount (₹)", min_value=0.0, format="%.2f", key="extra_amt")
+                    more_submit = st.form_submit_button("Submit Extra Entry")
+
+                    if more_submit:
+                        current_income -= extra_expense
+                        new_extra_row = pd.DataFrame([[username, hashed_password, add_date, 0.0, extra_expense, "", "", "", age, extra_category]],
+                                                     columns=["Username", "Password", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Expense Category"])
+                        budget_data = pd.concat([budget_data, new_extra_row], ignore_index=True)
+                        save_data(budget_data)
+                        st.success(f"✅ Entry for {extra_category} added. Remaining income: ₹{current_income:.2f}")
+
+            save_data(budget_data)
+            st.success("✅ Main entry added successfully!")
 
     # Analysis Section
     elif section == "Analysis":
@@ -125,15 +144,15 @@ else:
             total_expenses = student_data['Expenses'].sum()
             total_savings = total_income - total_expenses
 
-            st.metric("Total Income", f"${total_income:.2f}")
-            st.metric("Total Expenses", f"${total_expenses:.2f}")
-            st.metric("Estimated Savings", f"${total_savings:.2f}")
+            st.metric("Total Income", f"₹{total_income:.2f}")
+            st.metric("Total Expenses", f"₹{total_expenses:.2f}")
+            st.metric("Estimated Savings", f"₹{total_savings:.2f}")
 
             st.subheader("📈 Income vs Expenses Over Time")
             line_data = student_data.sort_values("Date")
             fig = go.Figure()
-            fig.add_trace(go.Scatter(x=line_data['Date'], y=line_data['Income'], mode='lines+markers', name='Income'))
-            fig.add_trace(go.Scatter(x=line_data['Date'], y=line_data['Expenses'], mode='lines+markers', name='Expenses'))
+            fig.add_trace(go.Bar(x=line_data['Date'], y=line_data['Income'], name='Income'))
+            fig.add_trace(go.Bar(x=line_data['Date'], y=line_data['Expenses'], name='Expenses'))
             st.plotly_chart(fig)
         else:
             st.info("No data available.")
@@ -147,9 +166,9 @@ else:
             total_expenses = student_data['Expenses'].sum()
             remaining = total_income - total_expenses
 
-            st.metric("Total Income", f"${total_income:.2f}")
-            st.metric("Total Expenses", f"${total_expenses:.2f}")
-            st.metric("Remaining Wealth", f"${remaining:.2f}")
+            st.metric("Total Income", f"₹{total_income:.2f}")
+            st.metric("Total Expenses", f"₹{total_expenses:.2f}")
+            st.metric("Remaining Wealth", f"₹{remaining:.2f}")
 
             if total_income > 0:
                 pie = pd.DataFrame({
@@ -165,7 +184,6 @@ else:
         else:
             st.warning("No data to display.")
 
-    # Investment Suggestions
     elif section == "Investment Suggestions":
         st.title("📈 Smart Investment Ideas for Your Age Group")
         age_input = st.slider("Select Your Age", 5, 35, 18)
@@ -177,9 +195,8 @@ else:
         elif age_input <= 21:
             st.info("🧑 **18–21 years**\n- 📈 Mutual Funds\n- 📚 Stock Market Basics\n- 💰 Digital Gold\n✅ *Build financial habits*")
         else:
-            st.info("👨‍🎓 **22–35 years**\n- 📉 Stocks\n- 🪙 Crypto (risky)\n- 🛡️ NPS\n- 🌳 PPF\n✅ *Plan long-term & diversify*")
+            st.info("👨‍🎓 **22–35 years**\n- 📉 Stocks\n- 🪙 Crypto (risky)\n- 🛁 NPS\n- 🌳 PPF\n✅ *Plan long-term & diversify*")
 
-    # Financial Education
     elif section == "Financial Education":
         st.title("📚 Financial Education")
         st.markdown("""
@@ -193,22 +210,21 @@ else:
         - Shares that represent ownership in a company.
 
         **Types of Stocks:**
-        - **Blue Chip Stocks**: Large, reputable companies; low risk.
-        - **Growth Stocks**: Rapidly expanding companies; moderate to high risk.
-        - **Penny Stocks**: Low-priced, speculative; high risk.
-        - **Dividend Stocks**: Provide regular income; moderate risk.
-        - **Cyclical Stocks**: Move with the economy; variable risk.
+        - **Blue Chip Stocks**: Large, reputable companies; low risk. Ideal for conservative investors.
+        - **Growth Stocks**: Companies expected to grow rapidly; moderate to high risk. Best for long-term investors.
+        - **Penny Stocks**: Very low-priced, speculative; high risk. Suitable only for aggressive investors.
+        - **Dividend Stocks**: Pay regular income; moderate risk. Ideal for income-seeking investors.
+        - **Cyclical Stocks**: Dependent on economic cycles; variable risk. Suitable for market-savvy investors.
 
         **Age-wise Stock Strategy:**
-        - **18-21 years**: Learn first — index/mutual funds
-        - **22-25 years**: Add growth stocks
-        - **26-30 years**: Diversify with mid-cap/sectoral
-        - **31-35 years**: Stabilize — more dividends, debt funds
+        - **18-21 years**: Focus on learning — invest in low-cost index funds or mutual funds. Understand basics before entering direct stocks.
+        - **22-25 years**: Begin exploring stocks with a long-term growth horizon. Prefer blue-chip and growth stocks.
+        - **26-30 years**: Diversify into mid-cap and sectoral stocks. Consider SIPs in equities and retirement-oriented funds.
+        - **31-35 years**: Stabilize your portfolio. Increase allocation to dividend stocks and debt instruments. Focus on wealth preservation and tax-saving investments.
 
         **What is Risk Appetite?**
-        - Your willingness to take financial risks for potential gain.
+        - Your willingness to take investment risks for potential higher returns.
 
         **What is Compounding?**
-        - Earning returns on both your principal and previously earned returns over time.
+        - Earning returns on your initial investment and the returns it generates over time.
         """)
-
