@@ -116,28 +116,28 @@ else:
                                    columns=["Username", "Password", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Expense Category"])
             budget_data = pd.concat([budget_data, new_row], ignore_index=True)
 
-            # Collect multiple entries using expander
-            if add_more:
-                with st.expander("➕ Add More Expenses"):
-                    default_expense_df = pd.DataFrame([{"Expense Category": "", "Amount (₹)": 0.0}])
-                    more_expenses = st.experimental_data_editor(default_expense_df, num_rows="dynamic")
-
-                    if not more_expenses.empty and "Amount (₹)" in more_expenses.columns:
-                        for _, row in more_expenses.iterrows():
-                            try:
-                                extra_expense = float(row["Amount (₹)"])
-                                extra_category = row["Expense Category"]
-                                if extra_expense > 0:
-                                    current_income -= extra_expense
-                                    new_extra_row = pd.DataFrame([[username, hashed_password, datetime.today(), 0.0, extra_expense, "", "", "", age, extra_category]],
-                                                                 columns=["Username", "Password", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Expense Category"])
-                                    budget_data = pd.concat([budget_data, new_extra_row], ignore_index=True)
-                            except (ValueError, KeyError):
-                                continue
-
+            # Save immediately for first entry
             save_data(budget_data)
-            st.success(f"✅ Entry(ies) saved! Remaining Income: ₹{current_income:.2f}")
 
+        if add_more:
+            st.subheader("➕ Add More Expenses")
+            default_expense_df = pd.DataFrame([{"Expense Category": "", "Amount (₹)": 0.0}])
+            more_expenses = st.data_editor(default_expense_df, num_rows="dynamic", key="more_expenses_editor")
+
+            if not more_expenses.empty and "Amount (₹)" in more_expenses.columns:
+                for _, row in more_expenses.iterrows():
+                    try:
+                        extra_expense = float(row["Amount (₹)"])
+                        extra_category = row["Expense Category"]
+                        if extra_expense > 0:
+                            new_extra_row = pd.DataFrame([[username, hashed_password, datetime.today(), 0.0, extra_expense, "", "", "", age, extra_category]],
+                                                         columns=["Username", "Password", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Expense Category"])
+                            budget_data = pd.concat([budget_data, new_extra_row], ignore_index=True)
+                    except (ValueError, KeyError):
+                        continue
+
+                save_data(budget_data)
+                st.success("✅ Additional entries saved!")
 
     # Analysis Section
     elif section == "Analysis":
@@ -155,9 +155,10 @@ else:
             st.subheader("📈 Income vs Expenses Over Time")
             line_data = student_data.sort_values("Date")
             fig = go.Figure()
-            fig.add_trace(go.Bar(x=line_data['Date'], y=line_data['Income'], name='Income'))
-            fig.add_trace(go.Bar(x=line_data['Date'], y=line_data['Expenses'], name='Expenses'))
+            fig.add_trace(go.Scatter(x=line_data['Date'], y=line_data['Income'], mode='lines+markers', name='Income'))
+            fig.add_trace(go.Scatter(x=line_data['Date'], y=line_data['Expenses'], mode='lines+markers', name='Expenses'))
             st.plotly_chart(fig)
+
         else:
             st.info("No data available.")
 
@@ -187,19 +188,6 @@ else:
                 st.info("Insufficient income data to display chart.")
         else:
             st.warning("No data to display.")
-
-    elif section == "Investment Suggestions":
-        st.title("📈 Smart Investment Ideas for Your Age Group")
-        age_input = st.slider("Select Your Age", 5, 35, 18)
-
-        if age_input <= 12:
-            st.info("👶 **5–12 years**\n- 🐖 Piggy Banks\n- 🏦 Recurring Deposits (with parents)\n✅ *Learn to save*")
-        elif age_input <= 17:
-            st.info("👦👧 **13–17 years**\n- 🏦 Savings Account\n- 📊 Mutual Funds (with guardians)\n- 🔄 SIPs\n✅ *Start small and steady*")
-        elif age_input <= 21:
-            st.info("🧑 **18–21 years**\n- 📈 Mutual Funds\n- 📚 Stock Market Basics\n- 💰 Digital Gold\n✅ *Build financial habits*")
-        else:
-            st.info("👨‍🎓 **22–35 years**\n- 📉 Stocks\n- 🪙 Crypto (risky)\n- 💼 NPS\n- 🌳 PPF\n✅ *Plan long-term & diversify*")
 
     elif section == "Financial Education":
         st.title("📚 Financial Education")
