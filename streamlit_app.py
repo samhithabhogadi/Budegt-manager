@@ -11,10 +11,13 @@ st.set_page_config(page_title="Student Wealth & Investment Hub", layout="wide", 
 # ✅ Load Data Function
 @st.cache_data
 def load_data():
+    expected_columns = ["Username", "Password", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age"]
     try:
         df = pd.read_csv("student_budget_data.csv", parse_dates=['Date'])
-    except FileNotFoundError:
-        df = pd.DataFrame(columns=["Username", "Password", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age"])
+        if not all(col in df.columns for col in expected_columns):
+            raise ValueError("Missing columns")
+    except (FileNotFoundError, ValueError):
+        df = pd.DataFrame(columns=expected_columns)
         df.to_csv("student_budget_data.csv", index=False)
     return df
 
@@ -26,14 +29,10 @@ def save_data(df):
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-# ✅ Load CSV data and ensure columns
+# ✅ Load the CSV data
 budget_data = load_data()
-required_columns = {"Username", "Password"}
-if not required_columns.issubset(budget_data.columns):
-    st.error("Data file is missing necessary columns. Please delete or fix the CSV file.")
-    st.stop()
 
-# ✅ Login Section
+# Username and password input on main screen
 st.header("👤 User Login")
 username = st.text_input("Enter your username", key="username")
 password = st.text_input("Enter your password", type="password", key="password")
@@ -43,11 +42,8 @@ if not username or not password:
     st.stop()
 
 hashed_password = hash_password(password)
-
-# ✅ User Filtering
 user_data = budget_data[(budget_data['Username'] == username) & (budget_data['Password'] == hashed_password)]
 
-# ✅ Register if new
 if user_data.empty and st.button("Register New User"):
     new_user = pd.DataFrame([[username, hashed_password, None, 0.0, 0.0, "", "", "", None]],
                              columns=["Username", "Password", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age"])
@@ -111,3 +107,31 @@ elif section == "Add Entry":
                 budget_data = pd.concat([budget_data, new_row], ignore_index=True)
                 save_data(budget_data)
                 st.success(f"✅ Entry {i+1} added successfully!")
+
+# Financial Education Section
+elif section == "Financial Education":
+    st.title("📖 Financial Education")
+    st.markdown("""
+    ### 💡 What is a Mutual Fund?
+    A mutual fund pools money from many investors to invest in stocks, bonds, or other assets.
+
+    **Types of Mutual Funds:**
+    - Equity Funds
+    - Debt Funds
+    - Hybrid Funds
+    - Index Funds
+
+    ### 📈 What are Stocks?
+    Stocks represent ownership in a company.
+
+    **Types of Stocks:**
+    - Common Stock
+    - Preferred Stock
+    - Large-cap, Mid-cap, Small-cap
+
+    ### 🔍 What is Risk Appetite?
+    Your risk appetite is the level of risk you're willing to take with your investments. It influences the types of investments suitable for you.
+
+    ### 📊 What is Compounding?
+    Compounding is when your investment earns returns, and those returns also earn returns over time. The earlier you start investing, the more you benefit!
+    """)
