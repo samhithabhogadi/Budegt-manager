@@ -12,7 +12,7 @@ def load_data():
     try:
         df = pd.read_csv("student_budget_data.csv", parse_dates=['Date'])
     except FileNotFoundError:
-        df = pd.DataFrame(columns=["Name", "Date", "Income", "Expenses", "Category", "Amount", "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Assets", "Liabilities"])
+        df = pd.DataFrame(columns=["Name", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Assets", "Liabilities"])
         df.to_csv("student_budget_data.csv", index=False)
     return df
 
@@ -51,6 +51,9 @@ st.sidebar.markdown("""
   - Net Worth = Assets - Liabilities
   - Diversification = Spreading risk
   - SIP = Systematic Investment Plan
+  - Asset: What you own
+  - Liability: What you owe
+  - Compounding: Earning interest on interest
 """)
 
 # Home Section
@@ -60,8 +63,8 @@ if section == "Home":
     Track your **income**, monitor your **expenses**, set **savings goals**, and explore **investment opportunities** based on your age and risk appetite.
 
     #### Features:
-    - Add income & expenses
-    - View savings and category analysis
+    - Add income & multiple expenses
+    - View savings and financial analysis
     - Net worth tracking
     - Personalized investment advice
     - Finance education sidebar
@@ -81,9 +84,19 @@ elif section == "Add Entry":
         age = st.number_input("Age", min_value=5, max_value=25)
         date = st.date_input("Date", value=datetime.today())
         income = st.number_input("Monthly Income ($)", min_value=0.0, format="%.2f")
-        expenses = st.number_input("Monthly Expenses ($)", min_value=0.0, format="%.2f")
-        category = st.selectbox("Expense Category", ["Food", "Transport", "Rent", "Entertainment", "Utilities", "Others"])
-        amount = st.number_input("Category Expense Amount ($)", min_value=0.0, format="%.2f")
+        expenses = st.number_input("Total Monthly Expenses ($)", min_value=0.0, format="%.2f")
+
+        st.markdown("### 💳 Enter Multiple Expense Items")
+        expense_data = []
+        for i in range(3):  # Can adjust number of entries as needed
+            col1, col2 = st.columns([2, 1])
+            with col1:
+                label = st.text_input(f"Expense {i+1} Description", key=f"label_{i}")
+            with col2:
+                amount = st.number_input(f"Amount ${i+1}", min_value=0.0, format="%.2f", key=f"amount_{i}")
+            if label and amount:
+                expense_data.append((label, amount))
+
         saving_goals = st.text_input("Saving Goals")
         risk_appetite = st.selectbox("Risk Appetite", ["Low", "Moderate", "High"])
         investment_plan = st.selectbox("Preferred Investment Plan", ["None", "Piggy Bank", "Fixed Deposit", "Mutual Funds", "Stocks", "Crypto"])
@@ -92,9 +105,10 @@ elif section == "Add Entry":
         submit = st.form_submit_button("Add Entry")
 
         if submit:
-            new_row = pd.DataFrame([[name, date, income, expenses, category, amount, saving_goals, risk_appetite, investment_plan, age, assets, liabilities]],
-                                   columns=["Name", "Date", "Income", "Expenses", "Category", "Amount", "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Assets", "Liabilities"])
-            budget_data = pd.concat([budget_data, new_row], ignore_index=True)
+            for label, amt in expense_data:
+                new_row = pd.DataFrame([[name, date, income, expenses, saving_goals, risk_appetite, investment_plan, age, assets, liabilities]],
+                                       columns=["Name", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Assets", "Liabilities"])
+                budget_data = pd.concat([budget_data, new_row], ignore_index=True)
             save_data(budget_data)
             st.success("✅ Entry added successfully!")
 
@@ -113,9 +127,6 @@ elif section == "Analysis":
         st.metric("Total Expenses", f"${total_expenses:.2f}")
         st.metric("Estimated Savings", f"${total_savings:.2f}")
 
-        category_summary = student_data.groupby("Category")["Amount"].sum()
-        st.subheader("Spending by Category")
-        st.bar_chart(category_summary)
     else:
         st.info("No data available.")
 
@@ -200,6 +211,10 @@ elif section == "Finance Education":
     - Index Funds
     - PPF (Public Provident Fund)
     - NPS (National Pension Scheme)
+
+    #### 🧮 What is Compounding?
+    - Compounding means earning interest on both the initial principal and the accumulated interest.
+    - Over time, this can lead to exponential growth of investments.
 
     #### 💡 Golden Rules:
     - Start early
