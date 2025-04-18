@@ -52,8 +52,6 @@ if not st.session_state.authenticated:
             st.session_state.username = username
             st.session_state.hashed_password = hashed_password
             st.success("✅ Logged in successfully!")
-        else:
-            st.warning("⚠️ Incorrect username or password.")
 
     if st.button("Register New User"):
         if username and password:
@@ -67,10 +65,6 @@ if not st.session_state.authenticated:
                 st.session_state.username = username
                 st.session_state.hashed_password = hashed_password
                 st.success("✅ New user registered.")
-            else:
-                st.error("❌ Username already exists.")
-        else:
-            st.error("❌ Username and password cannot be empty.")
 else:
     username = st.session_state.username
     hashed_password = st.session_state.hashed_password
@@ -78,17 +72,10 @@ else:
 
     # Sidebar Navigation
     st.sidebar.title("📚 Student Financial Toolkit")
-    section = st.sidebar.radio("Navigate to", ["Home", "Add Entry", "Analysis", "Wealth Tracker", "Investment Suggestions", "Financial Education", "Logout"])
-
-    # Logout
-    if section == "Logout":
-        st.session_state.authenticated = False
-        st.session_state.username = ""
-        st.session_state.hashed_password = ""
-        st.experimental_rerun()
+    section = st.sidebar.radio("Navigate to", ["Home", "Add Entry", "Analysis", "Wealth Tracker", "Investment Suggestions", "Financial Education"])
 
     # Home Section
-    elif section == "Home":
+    if section == "Home":
         st.title("🎓 Welcome to the Student Wealth & Investment Hub")
         st.markdown(f"""
         Hello **{username}**, welcome back!
@@ -187,22 +174,17 @@ else:
 
     # Investment Suggestions
     elif section == "Investment Suggestions":
-        st.title("📈 Age-based Investment Suggestions")
-        st.markdown("""
-        - **5-12 years**: Piggy Banks, Recurring Deposits (with parents)
-        - **13-17 years**: Savings Account, Mutual Funds (with guardians), SIPs
-        - **18-21 years**: Mutual Funds, Stock Market Basics, Digital Gold
-        - **22-35 years**: Full-fledged Stocks, Crypto (carefully), NPS, PPF
-        """)
-        age_input = st.slider("Select Age for Suggestions", 5, 35, 18)
+        st.title("📈 Smart Investment Ideas for Your Age Group")
+        age_input = st.slider("Select Your Age", 5, 35, 18)
+
         if age_input <= 12:
-            st.info("Recommended: Piggy Bank, Recurring Deposit")
+            st.info("👶 **5–12 years**\n- 🐖 Piggy Banks\n- 🏦 Recurring Deposits (with parents)\n✅ *Learn to save*")
         elif age_input <= 17:
-            st.info("Recommended: Savings Account, Mutual Funds (w/ guardians), SIPs")
+            st.info("👦👧 **13–17 years**\n- 🏦 Savings Account\n- 📊 Mutual Funds (with guardians)\n- 🔄 SIPs\n✅ *Start small and steady*")
         elif age_input <= 21:
-            st.info("Recommended: Mutual Funds, Stock Market Basics, Digital Gold")
+            st.info("🧑 **18–21 years**\n- 📈 Mutual Funds\n- 📚 Stock Market Basics\n- 💰 Digital Gold\n✅ *Build financial habits*")
         else:
-            st.info("Recommended: Stocks, Crypto (cautiously), PPF, NPS")
+            st.info("👨‍🎓 **22–35 years**\n- 📉 Stocks\n- 🪙 Crypto (risky)\n- 🛡️ NPS\n- 🌳 PPF\n✅ *Plan long-term & diversify*")
 
     # Financial Education
     elif section == "Financial Education":
@@ -223,6 +205,12 @@ else:
         - **Penny Stocks**: Very low-priced, speculative; high risk. Suitable only for aggressive investors.
         - **Dividend Stocks**: Pay regular income; moderate risk. Ideal for income-seeking investors.
         - **Cyclical Stocks**: Dependent on economic cycles; variable risk. Suitable for market-savvy investors.
+
+        **Age-wise Stock Strategy:**
+        - **18-21 years**: Focus on learning — invest in low-cost index funds or mutual funds. Understand basics before entering direct stocks.
+        - **22-25 years**: Begin exploring stocks with a long-term growth horizon. Prefer blue-chip and growth stocks.
+        - **26-30 years**: Diversify into mid-cap and sectoral stocks. Consider SIPs in equities and retirement-oriented funds.
+        - **31-35 years**: Stabilize your portfolio. Increase allocation to dividend stocks and debt instruments. Focus on wealth preservation and tax-saving investments.
 
         **What is Risk Appetite?**
         - Your willingness to take investment risks for potential higher returns.
