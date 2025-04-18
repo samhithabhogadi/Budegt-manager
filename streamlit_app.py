@@ -90,78 +90,77 @@ else:
         Your financial journey starts here! 🚀
         """)
 
- # Add Entry Section
-elif section == "Add Entry":
-    st.title("➕ Add Financial Entry")
-    with st.form("entry_form"):
-        age = st.number_input("Age", min_value=5, max_value=25)
-        date = st.date_input("Date", value=datetime.today())
-        income = st.number_input("Monthly Income ($)", min_value=0.0, format="%.2f")
-        expenses = st.number_input("Total Monthly Expenses ($)", min_value=0.0, format="%.2f")
+    # Add Entry Section
+    elif section == "Add Entry":
+        st.title("➕ Add Financial Entry")
+        with st.form("entry_form"):
+            age = st.number_input("Age", min_value=5, max_value=25)
+            date = st.date_input("Date", value=datetime.today())
+            income = st.number_input("Monthly Income ($)", min_value=0.0, format="%.2f")
+            expenses = st.number_input("Total Monthly Expenses ($)", min_value=0.0, format="%.2f")
 
-        saving_goals = st.text_input("Saving Goals")
-        risk_appetite = st.selectbox("Risk Appetite", ["Low", "Moderate", "High"])
-        investment_plan = st.selectbox("Preferred Investment Plan", ["None", "Piggy Bank", "Fixed Deposit", "Mutual Funds", "Stocks", "Crypto"])
-        assets = st.number_input("Total Assets ($)", min_value=0.0, format="%.2f")
-        liabilities = st.number_input("Total Liabilities ($)", min_value=0.0, format="%.2f")
-        submit = st.form_submit_button("Add Entry")
+            saving_goals = st.text_input("Saving Goals")
+            risk_appetite = st.selectbox("Risk Appetite", ["Low", "Moderate", "High"])
+            investment_plan = st.selectbox("Preferred Investment Plan", ["None", "Piggy Bank", "Fixed Deposit", "Mutual Funds", "Stocks", "Crypto"])
+            assets = st.number_input("Total Assets ($)", min_value=0.0, format="%.2f")
+            liabilities = st.number_input("Total Liabilities ($)", min_value=0.0, format="%.2f")
+            submit = st.form_submit_button("Add Entry")
 
-        if submit:
-            new_row = pd.DataFrame([[username, date, income, expenses, saving_goals, risk_appetite, investment_plan, age, assets, liabilities]],
-                                   columns=["Name", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Assets", "Liabilities"])
-            budget_data = pd.concat([budget_data, new_row], ignore_index=True)
-            save_data(budget_data)
-            st.success("✅ Entry added successfully!")
+            if submit:
+                new_row = pd.DataFrame([[username, date, income, expenses, saving_goals, risk_appetite, investment_plan, age, assets, liabilities]],
+                                       columns=["Name", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Assets", "Liabilities"])
+                budget_data = pd.concat([budget_data, new_row], ignore_index=True)
+                save_data(budget_data)
+                st.success("✅ Entry added successfully!")
 
-# Analysis Section
-elif section == "Analysis":
-    st.title("📊 Financial Overview")
-    student_data = budget_data[budget_data['Name'] == username]
-    if not student_data.empty:
-        total_income = student_data['Income'].sum()
-        total_expenses = student_data['Expenses'].sum()
-        total_savings = total_income - total_expenses
+    # Analysis Section
+    elif section == "Analysis":
+        st.title("📊 Financial Overview")
+        student_data = budget_data[budget_data['Name'] == username]
+        if not student_data.empty:
+            total_income = student_data['Income'].sum()
+            total_expenses = student_data['Expenses'].sum()
+            total_savings = total_income - total_expenses
 
-        st.metric("Total Income", f"${total_income:.2f}")
-        st.metric("Total Expenses", f"${total_expenses:.2f}")
-        st.metric("Estimated Savings", f"${total_savings:.2f}")
+            st.metric("Total Income", f"${total_income:.2f}")
+            st.metric("Total Expenses", f"${total_expenses:.2f}")
+            st.metric("Estimated Savings", f"${total_savings:.2f}")
 
-        st.subheader("📈 Income vs Expenses Over Time")
-        line_data = student_data.sort_values("Date")
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(x=line_data['Date'], y=line_data['Income'], mode='lines+markers', name='Income'))
-        fig.add_trace(go.Scatter(x=line_data['Date'], y=line_data['Expenses'], mode='lines+markers', name='Expenses'))
-        st.plotly_chart(fig)
-
-    else:
-        st.info("No data available.")
-
-# Wealth Tracker Section
-elif section == "Wealth Tracker":
-    st.title("💼 Expense vs Remaining Wealth")
-    student_data = budget_data[budget_data['Name'] == username]
-    if not student_data.empty:
-        total_income = student_data['Income'].sum()
-        total_expenses = student_data['Expenses'].sum()
-        remaining = total_income - total_expenses
-
-        st.metric("Total Income", f"${total_income:.2f}")
-        st.metric("Total Expenses", f"${total_expenses:.2f}")
-        st.metric("Remaining Wealth", f"${remaining:.2f}")
-
-        if total_income > 0:
-            pie = pd.DataFrame({
-                'Type': ['Expenses', 'Remaining'],
-                'Value': [total_expenses, remaining]
-            })
-            fig, ax = plt.subplots()
-            ax.pie(pie['Value'], labels=pie['Type'], autopct='%1.1f%%', startangle=90)
-            ax.axis("equal")
-            st.pyplot(fig)
+            st.subheader("📈 Income vs Expenses Over Time")
+            line_data = student_data.sort_values("Date")
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(x=line_data['Date'], y=line_data['Income'], mode='lines+markers', name='Income'))
+            fig.add_trace(go.Scatter(x=line_data['Date'], y=line_data['Expenses'], mode='lines+markers', name='Expenses'))
+            st.plotly_chart(fig)
         else:
-            st.info("Insufficient income data to display chart.")
-    else:
-        st.warning("No data to display.")
+            st.info("No data available.")
+
+    # Wealth Tracker Section
+    elif section == "Wealth Tracker":
+        st.title("💼 Expense vs Remaining Wealth")
+        student_data = budget_data[budget_data['Name'] == username]
+        if not student_data.empty:
+            total_income = student_data['Income'].sum()
+            total_expenses = student_data['Expenses'].sum()
+            remaining = total_income - total_expenses
+
+            st.metric("Total Income", f"${total_income:.2f}")
+            st.metric("Total Expenses", f"${total_expenses:.2f}")
+            st.metric("Remaining Wealth", f"${remaining:.2f}")
+
+            if total_income > 0:
+                pie = pd.DataFrame({
+                    'Type': ['Expenses', 'Remaining'],
+                    'Value': [total_expenses, remaining]
+                })
+                fig, ax = plt.subplots()
+                ax.pie(pie['Value'], labels=pie['Type'], autopct='%1.1f%%', startangle=90)
+                ax.axis("equal")
+                st.pyplot(fig)
+            else:
+                st.info("Insufficient income data to display chart.")
+        else:
+            st.warning("No data to display.")
 
     # Investment Suggestions
     elif section == "Investment Suggestions":
