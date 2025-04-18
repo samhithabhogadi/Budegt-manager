@@ -5,7 +5,6 @@ import plotly.graph_objs as go
 from datetime import datetime
 import yfinance as yf
 import hashlib
-import re
 
 st.set_page_config(page_title="Student Wealth & Investment Hub", layout="wide", page_icon="💰")
 
@@ -25,19 +24,12 @@ def save_data(df):
 
 # ✅ Hashing Function for Password
 def hash_password(password):
-    if not re.match(r"^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>/?]).{6,}$", password):
-        st.error("Password must include letters, numbers, and special characters and be at least 6 characters long.")
-        st.stop()
     return hashlib.sha256(password.encode()).hexdigest()
 
 # ✅ Load the CSV data
 budget_data = load_data()
 
-# ✅ Sidebar Navigation
-st.sidebar.title("📊 Navigation")
-section = st.sidebar.radio("Go to", ["Home", "Add Entry", "Analysis", "Wealth Tracker", "Investment Suggestions", "Financial Education"])
-
-# ✅ Username and Password Input
+# Username and password input on main screen
 st.header("👤 User Login")
 username = st.text_input("Enter your username", key="username")
 password = st.text_input("Enter your password", type="password", key="password")
@@ -49,18 +41,18 @@ if not username or not password:
 hashed_password = hash_password(password)
 user_data = budget_data[(budget_data['Username'] == username) & (budget_data['Password'] == hashed_password)]
 
-if user_data.empty:
-    if st.button("Register New User"):
-        st.success("✅ New user registered. You can now start adding your data.")
-        new_user = pd.DataFrame([[username, hashed_password, pd.NaT, 0, 0, "", "", "", None]],
-                                columns=["Username", "Password", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age"])
-        budget_data = pd.concat([budget_data, new_user], ignore_index=True)
-        save_data(budget_data)
-        st.experimental_rerun()
-    else:
-        st.stop()
+if user_data.empty and st.button("Register New User"):
+    new_user = pd.DataFrame([[username, hashed_password, None, 0.0, 0.0, "", "", "", None]],
+                             columns=["Username", "Password", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age"])
+    budget_data = pd.concat([budget_data, new_user], ignore_index=True)
+    save_data(budget_data)
+    st.success("✅ New user registered. You can now start adding your data.")
 
-# ✅ Home Section
+# Sidebar Navigation
+st.sidebar.title("📚 Student Financial Toolkit")
+section = st.sidebar.radio("Navigate to", ["Home", "Add Entry", "Analysis", "Wealth Tracker", "Investment Suggestions", "Financial Education"])
+
+# Home Section
 if section == "Home":
     st.title("🎓 Welcome to the Student Wealth & Investment Hub")
     st.markdown("""
@@ -74,14 +66,13 @@ if section == "Home":
     """)
 
     st.subheader("📁 Your Budget Data")
-    user_data = budget_data[budget_data['Username'] == username]
     if not user_data.empty:
         latest_entry = user_data.sort_values("Date", ascending=False)
         st.dataframe(latest_entry)
     else:
         st.info("No data available. Please add entries.")
 
-# ✅ Add Entry Section
+# Add Entry Section
 elif section == "Add Entry":
     st.title("➕ Add Daily Financial Entry")
     num_entries = st.number_input("How many entries do you want to add?", min_value=1, max_value=15, step=1)
@@ -113,20 +104,3 @@ elif section == "Add Entry":
                 budget_data = pd.concat([budget_data, new_row], ignore_index=True)
                 save_data(budget_data)
                 st.success(f"✅ Entry {i+1} added successfully!")
-
-# Inside the 'Analysis' section
-elif section == "Analysis":
-    st.title("📊 Financial Overview")
-    student_data = budget_data[budget_data['Name'] == username]
-    if not student_data.empty:
-        ...
-        st.subheader("📊 Investment Plan with Current Prices")
-        if student_data['Investment Plan'].str.contains("Stocks|Crypto").any():
-            stocks = ["AAPL", "TSLA", "INFY.BO"]
-            for symbol in stocks:
-                ticker = yf.Ticker(symbol)
-                hist = ticker.history(period="1d")
-                if not hist.empty:
-                    st.write(f"**{symbol}**: ₹{hist['Close'].iloc[-1]:.2f}")
-        else:
-            st.info("No stock or crypto investments found.")
