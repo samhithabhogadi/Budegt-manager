@@ -51,10 +51,12 @@ if not st.session_state.authenticated:
             st.session_state.authenticated = True
             st.session_state.username = username
             st.session_state.hashed_password = hashed_password
-            st.success("✅ Logged in successfully!")
-            st.experimental_rerun()
+            st.success("✅ Logged in successfully! Please click below to continue.")
+            st.button("Continue")
 
-        elif st.button("Register New User"):
+    if st.button("Register New User"):
+        if username and password:
+            hashed_password = hash_password(password)
             new_user = pd.DataFrame([[username, hashed_password, None, 0.0, 0.0, "", "", "", None]],
                                      columns=["Username", "Password", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age"])
             budget_data = pd.concat([budget_data, new_user], ignore_index=True)
@@ -62,8 +64,8 @@ if not st.session_state.authenticated:
             st.session_state.authenticated = True
             st.session_state.username = username
             st.session_state.hashed_password = hashed_password
-            st.success("✅ New user registered. Redirecting...")
-            st.experimental_rerun()
+            st.success("✅ New user registered. Please click below to continue.")
+            st.button("Continue")
 else:
     username = st.session_state.username
     hashed_password = st.session_state.hashed_password
