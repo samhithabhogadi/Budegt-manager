@@ -51,7 +51,8 @@ if section == "Home":
     st.subheader("📁 Your Budget Data")
     user_data = budget_data[budget_data['Name'] == username]
     if not user_data.empty:
-        st.dataframe(user_data)
+        latest_entry = user_data.sort_values("Date", ascending=False).head(1)
+        st.dataframe(latest_entry)
     else:
         st.info("No data available. Please add entries.")
 
@@ -61,8 +62,8 @@ elif section == "Add Entry":
     with st.form("entry_form"):
         age = st.number_input("Age", min_value=5, max_value=25)
         date = st.date_input("Date", value=datetime.today())
-        income = st.number_input("Monthly Income ($)", min_value=0.0, format="%.2f")
-        expenses = st.number_input("Total Monthly Expenses ($)", min_value=0.0, format="%.2f")
+        income = st.number_input("Monthly Income (₹)", min_value=0.0, format="%.2f")
+        expenses = st.number_input("Total Monthly Expenses (₹)", min_value=0.0, format="%.2f")
 
         saving_goals = st.text_input("Saving Goals")
         risk_appetite = st.selectbox("Risk Appetite", ["Low", "Moderate", "High"])
@@ -85,9 +86,9 @@ elif section == "Analysis":
         total_expenses = student_data['Expenses'].sum()
         total_savings = total_income - total_expenses
 
-        st.metric("Total Income", f"${total_income:.2f}")
-        st.metric("Total Expenses", f"${total_expenses:.2f}")
-        st.metric("Estimated Savings", f"${total_savings:.2f}")
+        st.metric("Total Income", f"₹{total_income:.2f}")
+        st.metric("Total Expenses", f"₹{total_expenses:.2f}")
+        st.metric("Estimated Savings", f"₹{total_savings:.2f}")
 
         st.subheader("📈 Income vs Expenses Over Time")
         line_data = student_data.sort_values("Date")
@@ -108,9 +109,9 @@ elif section == "Wealth Tracker":
         total_expenses = student_data['Expenses'].sum()
         remaining = total_income - total_expenses
 
-        st.metric("Total Income", f"${total_income:.2f}")
-        st.metric("Total Expenses", f"${total_expenses:.2f}")
-        st.metric("Remaining Wealth", f"${remaining:.2f}")
+        st.metric("Total Income", f"₹{total_income:.2f}")
+        st.metric("Total Expenses", f"₹{total_expenses:.2f}")
+        st.metric("Remaining Wealth", f"₹{remaining:.2f}")
 
         if total_income > 0:
             pie = pd.DataFrame({
