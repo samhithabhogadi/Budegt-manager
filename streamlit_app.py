@@ -108,4 +108,4 @@ else:
 
         if submit:
             new_row = pd.DataFrame([[username, hashed_password, date, income, monthly_expenses, daily_expenses, saving_goals, risk_appetite, investment_plan, age, expense_category, amount]],
-                                   columns=["Username", "Password", "Date", "Monthly Income", "Monthly Expenses
+                                   columns=["Username", "Password", "Date", "Monthly Income", "Monthly Expenses"]
