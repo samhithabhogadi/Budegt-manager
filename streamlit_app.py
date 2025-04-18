@@ -108,4 +108,27 @@ else:
 
         if submit:
             new_row = pd.DataFrame([[username, hashed_password, date, income, monthly_expenses, daily_expenses, saving_goals, risk_appetite, investment_plan, age, expense_category, amount]],
-                                   columns=["Username", "Password", "Date", "Monthly Income", "Monthly Expenses"]
+                                   columns=["Username", "Password", "Date", "Monthly Income", "Monthly Expenses", "Daily Expenses",
+                                            "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Expense Category", "Amount (₹)"])
+            budget_data = pd.concat([budget_data, new_row], ignore_index=True)
+            save_data(budget_data)
+
+        if add_more:
+            st.subheader("➕ Additional Expense Entries")
+            default_expense_df = pd.DataFrame([{"Expense Category": "", "Amount (₹)": 0.0}])
+            more_expenses = st.data_editor(default_expense_df, num_rows="dynamic", key="more_expenses_editor")
+
+            if not more_expenses.empty:
+                for _, row in more_expenses.iterrows():
+                    try:
+                        extra_expense = float(row["Amount (₹)"])
+                        extra_category = row["Expense Category"]
+                        if extra_expense > 0:
+                            new_extra_row = pd.DataFrame([[username, hashed_password, datetime.today(), 0.0, 0.0, 0.0, "", "", "", age, extra_category, extra_expense]],
+                                                         columns=["Username", "Password", "Date", "Monthly Income", "Monthly Expenses", "Daily Expenses",
+                                                                  "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Expense Category", "Amount (₹)"])
+                            budget_data = pd.concat([budget_data, new_extra_row], ignore_index=True)
+                    except Exception:
+                        continue
+                save_data(budget_data)
+                st.success("✅ Additional entries saved!")
