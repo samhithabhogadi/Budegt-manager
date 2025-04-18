@@ -5,6 +5,7 @@ import plotly.graph_objs as go
 from datetime import datetime
 import yfinance as yf
 import hashlib
+import re
 
 st.set_page_config(page_title="Student Wealth & Investment Hub", layout="wide", page_icon="💰")
 
@@ -24,6 +25,9 @@ def save_data(df):
 
 # ✅ Hashing Function for Password
 def hash_password(password):
+    if not re.match(r'^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{6,}$', password):
+        st.error("Password must include letters, numbers, and special characters and be at least 6 characters long.")
+        st.stop()
     return hashlib.sha256(password.encode()).hexdigest()
 
 # ✅ Load the CSV data
@@ -43,12 +47,6 @@ user_data = budget_data[(budget_data['Username'] == username) & (budget_data['Pa
 
 if user_data.empty and st.button("Register New User"):
     st.success("✅ New user registered. You can now start adding your data.")
-
-# Sidebar Navigation
-st.sidebar.title("📚 Student Financial Toolkit")
-section = st.sidebar.radio("Navigate to", ["Home", "Add Entry", "Analysis", "Wealth Tracker", "Investment Suggestions", "Financial Education"])
-
-
 # Home Section
 if section == "Home":
     st.title("🎓 Welcome to the Student Wealth & Investment Hub")
