@@ -137,6 +137,20 @@ else:
             fig.add_trace(go.Scatter(x=line_data['Date'], y=line_data['Income'], mode='lines+markers', name='Income'))
             fig.add_trace(go.Scatter(x=line_data['Date'], y=line_data['Expenses'], mode='lines+markers', name='Expenses'))
             st.plotly_chart(fig)
+
+            st.subheader("💡 Smart Insights")
+            if total_income > 0:
+                savings_rate = (total_savings / total_income) * 100
+                st.info(f"💸 You are saving {savings_rate:.2f}% of your income.")
+
+                if savings_rate < 10:
+                    st.warning("Consider reducing expenses or increasing income. Try creating a monthly budget.")
+                elif savings_rate < 30:
+                    st.info("You're doing okay! You might consider SIPs or hybrid mutual funds.")
+                else:
+                    st.success("Excellent saving rate! You could explore higher-yield investments like stocks or NPS.")
+            else:
+                st.info("Please add income to get insights.")
         else:
             st.info("No data available yet.")
 
