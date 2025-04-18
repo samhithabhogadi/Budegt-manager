@@ -12,7 +12,7 @@ def load_data():
     try:
         df = pd.read_csv("student_budget_data.csv", parse_dates=['Date'])
     except FileNotFoundError:
-        df = pd.DataFrame(columns=["Name", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Assets", "Liabilities"])
+        df = pd.DataFrame(columns=["Name", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age"])
         df.to_csv("student_budget_data.csv", index=False)
     return df
 
@@ -33,7 +33,7 @@ if not username:
 
 # Sidebar Navigation
 st.sidebar.title("📚 Student Financial Toolkit")
-section = st.sidebar.radio("Navigate to", ["Home", "Add Entry", "Analysis", "Wealth Tracker", "Investment Suggestions"])
+section = st.sidebar.radio("Navigate to", ["Home", "Add Entry", "Analysis", "Wealth Tracker", "Investment Suggestions", "Financial Education"])
 
 # Home Section
 if section == "Home":
@@ -67,13 +67,11 @@ elif section == "Add Entry":
         saving_goals = st.text_input("Saving Goals")
         risk_appetite = st.selectbox("Risk Appetite", ["Low", "Moderate", "High"])
         investment_plan = st.selectbox("Preferred Investment Plan", ["None", "Piggy Bank", "Fixed Deposit", "Mutual Funds", "Stocks", "Crypto"])
-        assets = st.number_input("Total Assets ($)", min_value=0.0, format="%.2f")
-        liabilities = st.number_input("Total Liabilities ($)", min_value=0.0, format="%.2f")
         submit = st.form_submit_button("Add Entry")
 
         if submit:
-            new_row = pd.DataFrame([[username, date, income, expenses, saving_goals, risk_appetite, investment_plan, age, assets, liabilities]],
-                                   columns=["Name", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Assets", "Liabilities"])
+            new_row = pd.DataFrame([[username, date, income, expenses, saving_goals, risk_appetite, investment_plan, age]],
+                                   columns=["Name", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age"])
             budget_data = pd.concat([budget_data, new_row], ignore_index=True)
             save_data(budget_data)
             st.success("✅ Entry added successfully!")
@@ -142,4 +140,73 @@ elif section == "Investment Suggestions":
     if age_input <= 12:
         st.info("Recommended: Piggy Bank, Recurring Deposit")
     elif age_input <= 17:
-        st.i
+        st.info("Recommended: Savings Account, Mutual Funds, SIP")
+    elif age_input <= 21:
+        st.info("Recommended: Mutual Funds, Stock Market Basics, Digital Gold")
+    else:
+        st.info("Recommended: Stocks, Crypto (cautiously), NPS, PPF")
+
+    st.subheader("📌 Risk Appetite Based Suggestions")
+    risk = st.selectbox("What's your risk appetite?", ["Low", "Moderate", "High"])
+    if risk == "Low":
+        st.info("Recommended: Fixed Deposits, PPF, Bonds")
+    elif risk == "Moderate":
+        st.info("Recommended: Mutual Funds, Index Funds")
+    else:
+        st.info("Recommended: Stocks, Crypto, Real Estate")
+
+# Financial Education Section
+elif section == "Financial Education":
+    st.title("📖 Financial Education")
+
+    st.subheader("📌 What is a Mutual Fund?")
+    st.markdown("""
+    A **mutual fund** is like a money pool where many people put in their money. This money is then managed by experts who use it to buy **stocks**, **bonds**, and other investments. 
+
+    Everyone who puts money into the fund owns a small part of it. If the investments do well, everyone earns money. If they don’t do well, everyone shares the loss too. 
+
+    It's a simple way for beginners to invest, because professionals make the big decisions for you.
+    """)
+
+    st.subheader("📌 Types of Mutual Funds")
+    st.markdown("""
+    - **Equity Funds**: Invest in stocks
+    - **Debt Funds**: Invest in fixed income instruments
+    - **Hybrid Funds**: Combine equity and debt
+    - **Index Funds**: Track a stock market index
+    """)
+
+    st.subheader("📌 What is a Stock?")
+    st.markdown("""
+    A stock represents ownership in a company. When you own a stock, you're a shareholder of that company.
+    """)
+
+    st.subheader("📌 Types of Stocks")
+    st.markdown("""
+    - **Common Stocks**: Voting rights and dividends
+    - **Preferred Stocks**: Priority in dividends, no voting rights
+    - **Growth Stocks**: Companies expected to grow fast
+    - **Dividend Stocks**: Provide regular income via dividends
+    """)
+
+    st.subheader("📌 What is Risk Appetite?")
+    st.markdown("""
+    Risk appetite is the level of risk you’re willing to take with your investments. It depends on your age, goals, and personality.
+    """)
+
+    st.subheader("📌 What is Compounding?")
+    st.markdown("""
+    Compounding means earning interest on both your original money and the interest that money earns. Over time, this has a snowball effect.
+    """)
+
+    st.subheader("📌 Budgeting Plan for Students")
+    st.markdown("""
+    - Allocate income using the 50/30/20 rule:
+        - 50% Needs (Food, Travel)
+        - 30% Wants (Entertainment)
+        - 20% Savings/Investments
+    - Track monthly expenses
+    - Set realistic savings goals
+    - Avoid debt accumulation
+    - Start investing early in safe instruments
+    """)
