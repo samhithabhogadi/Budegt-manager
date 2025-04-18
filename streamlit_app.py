@@ -32,14 +32,15 @@ def hash_password(password):
 # ✅ Load the CSV data
 budget_data = load_data()
 
-# Username and password input on main screen
+# Session setup
 if 'authenticated' not in st.session_state:
     st.session_state.authenticated = False
     st.session_state.username = ""
     st.session_state.hashed_password = ""
 
+# User login and registration
 if not st.session_state.authenticated:
-    st.header("👤 User Login")
+    st.header("👤 User Login or Register")
     username = st.text_input("Enter your username", key="username_input")
     password = st.text_input("Enter your password", type="password", key="password_input")
 
@@ -51,21 +52,22 @@ if not st.session_state.authenticated:
             st.session_state.authenticated = True
             st.session_state.username = username
             st.session_state.hashed_password = hashed_password
-            st.success("✅ Logged in successfully! Redirecting...")
-            st.experimental_rerun()
+            st.success("✅ Logged in successfully!")
 
     if st.button("Register New User"):
         if username and password:
             hashed_password = hash_password(password)
-            new_user = pd.DataFrame([[username, hashed_password, None, 0.0, 0.0, "", "", "", None]],
-                                     columns=["Username", "Password", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age"])
-            budget_data = pd.concat([budget_data, new_user], ignore_index=True)
-            save_data(budget_data)
-            st.session_state.authenticated = True
-            st.session_state.username = username
-            st.session_state.hashed_password = hashed_password
-            st.success("✅ New user registered. Redirecting...")
-            st.experimental_rerun()
+            if username not in budget_data['Username'].values:
+                new_user = pd.DataFrame([[username, hashed_password, None, 0.0, 0.0, "", "", "", None]],
+                                         columns=["Username", "Password", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age"])
+                budget_data = pd.concat([budget_data, new_user], ignore_index=True)
+                save_data(budget_data)
+                st.session_state.authenticated = True
+                st.session_state.username = username
+                st.session_state.hashed_password = hashed_password
+                st.success("✅ New user registered.")
+            else:
+                st.error("❌ Username already exists.")
 else:
     username = st.session_state.username
     hashed_password = st.session_state.hashed_password
@@ -73,10 +75,17 @@ else:
 
     # Sidebar Navigation
     st.sidebar.title("📚 Student Financial Toolkit")
-    section = st.sidebar.radio("Navigate to", ["Home", "Add Entry", "Analysis", "Wealth Tracker", "Investment Suggestions", "Financial Education"])
+    section = st.sidebar.radio("Navigate to", ["Home", "Add Entry", "Analysis", "Wealth Tracker", "Investment Suggestions", "Financial Education", "Logout"])
+
+    # Logout
+    if section == "Logout":
+        st.session_state.authenticated = False
+        st.session_state.username = ""
+        st.session_state.hashed_password = ""
+        st.experimental_rerun()
 
     # Home Section
-    if section == "Home":
+    elif section == "Home":
         st.title("🎓 Welcome to the Student Wealth & Investment Hub")
         st.markdown(f"""
         Hello **{username}**, welcome back!
