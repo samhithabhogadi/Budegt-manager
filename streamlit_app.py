@@ -107,11 +107,16 @@ else:
             submit = st.form_submit_button("Add Entry")
 
         if submit:
-            new_row = pd.DataFrame([[username, hashed_password, date, income, monthly_expenses, daily_expenses, saving_goals, risk_appetite, investment_plan, age, expense_category, amount]],
-                                   columns=["Username", "Password", "Date", "Monthly Income", "Monthly Expenses", "Daily Expenses",
-                                            "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Expense Category", "Amount (₹)"])
-            budget_data = pd.concat([budget_data, new_row], ignore_index=True)
-            save_data(budget_data)
+            existing_entry = budget_data[(budget_data["Username"] == username) & (budget_data["Date"] == pd.to_datetime(date))]
+            if not existing_entry.empty:
+                st.warning("🚫 Entry already exists for this date. Edit it or choose a new date.")
+            else:
+                new_row = pd.DataFrame([[username, hashed_password, date, income, monthly_expenses, daily_expenses, saving_goals, risk_appetite, investment_plan, age, expense_category, amount]],
+                                       columns=["Username", "Password", "Date", "Monthly Income", "Monthly Expenses", "Daily Expenses",
+                                                "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Expense Category", "Amount (₹)"])
+                budget_data = pd.concat([budget_data, new_row], ignore_index=True)
+                save_data(budget_data)
+                st.success("✅ Entry added successfully.")
 
         if add_more:
             st.subheader("➕ Additional Expense Entries")
@@ -134,10 +139,17 @@ else:
                 st.success("✅ Additional entries saved!")
 
     elif section == "Wealth Tracker":
-        st.title("📉 Expense vs Wealth Tracker")
+        st.title("📊 Wealth Tracker")
 
-        monthly_income_total = user_data["Monthly Income"].sum()
-        total_expenses = user_data["Monthly Expenses"].sum() + user_data["Daily Expenses"].sum() + user_data["Amount (₹)"].sum()
+        aggregated_data = user_data.groupby("Date").agg({
+            "Monthly Income": "max",
+            "Monthly Expenses": "sum",
+            "Daily Expenses": "sum",
+            "Amount (₹)": "sum"
+        }).reset_index()
+
+        monthly_income_total = aggregated_data["Monthly Income"].sum()
+        total_expenses = aggregated_data["Monthly Expenses"].sum() + aggregated_data["Daily Expenses"].sum() + aggregated_data["Amount (₹)"].sum()
         remaining_wealth = monthly_income_total - total_expenses
 
         st.metric("📈 Total Income", f"₹{monthly_income_total:,.2f}")
@@ -146,41 +158,51 @@ else:
 
         pie_labels = ['Monthly Expenses', 'Daily Expenses', 'Other Expenses', 'Remaining']
         pie_values = [
-            user_data["Monthly Expenses"].sum(),
-            user_data["Daily Expenses"].sum(),
-            user_data["Amount (₹)"].sum(),
+            aggregated_data["Monthly Expenses"].sum(),
+            aggregated_data["Daily Expenses"].sum(),
+            aggregated_data["Amount (₹)"].sum(),
             remaining_wealth if remaining_wealth > 0 else 0
         ]
 
         pie_chart = go.Figure(data=[go.Pie(labels=pie_labels, values=pie_values, hole=0.3)])
         st.plotly_chart(pie_chart, use_container_width=True)
 
-        st.subheader("📊 Investment Strategy by Age & Risk")
+        st.subheader("📘 Investment Strategy Based on Age & Risk Appetite")
+
         age = int(user_data["Age"].dropna().iloc[-1]) if not user_data["Age"].dropna().empty else 20
         risk = user_data["Risk Appetite"].dropna().iloc[-1] if not user_data["Risk Appetite"].dropna().empty else "Moderate"
 
+        st.markdown(f"""
+        ### 👤 Your Profile
+        - **Age**: {age}
+        - **Risk Appetite**: {risk}
+        """)
+
         strategy = ""
         if age < 18:
-            strategy = "Short-term: Piggy bank, Recurring Deposits.\n\nLong-term: Start saving discipline, learn about money."
+            strategy = "Piggy bank savings, Recurring Deposits, Financial literacy games."
         elif 18 <= age < 22:
             if risk == "Low":
-                strategy = "Short-term: Fixed Deposits, Debt Funds.\n\nLong-term: Balanced Mutual Funds."
+                strategy = "Fixed Deposits, Debt Mutual Funds (low risk), PPF."
             elif risk == "Moderate":
-                strategy = "Short-term: Debt Funds, Conservative Hybrid Funds.\n\nLong-term: Mutual Funds, Index Funds."
+                strategy = "Balanced Mutual Funds, Index Funds, SIPs."
             else:
-                strategy = "Short-term: Liquid ETFs, Digital Gold.\n\nLong-term: Stocks, Crypto (careful)."
+                strategy = "Stocks, ETFs, Crypto (small %), Thematic Funds."
         else:
             if risk == "Low":
-                strategy = "Short-term: Debt Funds, Fixed Deposits.\n\nLong-term: PPF, Government Bonds."
+                strategy = "Government Bonds, PPF, Debt Funds."
             elif risk == "Moderate":
-                strategy = "Short-term: Hybrid Funds.\n\nLong-term: Equity Mutual Funds, SIPs."
+                strategy = "Equity Mutual Funds, SIPs, Hybrid Funds."
             else:
-                strategy = "Short-term: Stocks, Thematic ETFs.\n\nLong-term: Equity, Real Estate Investment Trusts (REITs), Derivatives (if skilled)."
+                strategy = "Direct Equity, REITs, Derivatives (for skilled)."
 
-        st.markdown(f"""
-        ### 🌎 Your Age: {age} | Risk Appetite: {risk}
-        
-        **Suggested Investment Strategy:**
+        st.info(f"**Recommended Investment Strategy:**\n{strategy}")
 
-        {strategy}
+        st.markdown("""
+        ---
+        ### 📚 Learning Resources
+        - [NSE Investment Academy](https://www.nseindia.com/learn)  
+        - [SEBI Investor Education](https://investor.sebi.gov.in/)  
+        - [Groww Blog](https://groww.in/blog)  
+        - [Zerodha Varsity](https://zerodha.com/varsity/)  
         """)
