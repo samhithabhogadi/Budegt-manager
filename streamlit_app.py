@@ -42,7 +42,7 @@ if section == "Home":
     Track your **income**, monitor your **expenses**, set **savings goals**, and explore **investment opportunities** based on your age and risk appetite.
 
     #### Features:
-    - Add income & multiple expenses
+    - Add daily income & expense entries
     - View savings and financial analysis
     - Net worth tracking
     - Personalized investment advice
@@ -58,16 +58,16 @@ if section == "Home":
 
 # Add Entry Section
 elif section == "Add Entry":
-    st.title("➕ Add Financial Entry")
+    st.title("➕ Add Daily Financial Entry")
     num_entries = st.number_input("How many entries do you want to add?", min_value=1, max_value=10, step=1)
 
     for i in range(int(num_entries)):
         st.markdown(f"### Entry {i+1}")
         with st.form(f"entry_form_{i}", clear_on_submit=True):
-            age = st.number_input("Age", min_value=5, max_value=25, key=f"age_{i}")
+            age = st.number_input("Age", min_value=5, max_value=35, key=f"age_{i}")
             date = st.date_input("Date", value=datetime.today(), key=f"date_{i}")
-            income = st.number_input("Monthly Income (₹)", min_value=0.0, format="%.2f", key=f"income_{i}")
-            expenses = st.number_input("Total Monthly Expenses (₹)", min_value=0.0, format="%.2f", key=f"expenses_{i}")
+            income = st.number_input("Daily Income (₹)", min_value=0.0, format="%.2f", key=f"income_{i}")
+            expenses = st.number_input("Total Daily Expenses (₹)", min_value=0.0, format="%.2f", key=f"expenses_{i}")
             saving_goals = st.text_input("Saving Goals", key=f"savings_{i}")
             risk_appetite = st.selectbox("Risk Appetite", ["Low", "Moderate", "High"], key=f"risk_{i}")
             investment_plan = st.selectbox("Preferred Investment Plan", ["None", "Piggy Bank", "Fixed Deposit", "Mutual Funds", "Stocks", "Crypto"], key=f"plan_{i}")
@@ -137,18 +137,21 @@ elif section == "Investment Suggestions":
     - **5-12 years**: Piggy Banks, Recurring Deposits (with parents)
     - **13-17 years**: Savings Account, Mutual Funds (with guardians), SIPs
     - **18-21 years**: Mutual Funds, Stock Market Basics, Digital Gold
-    - **22-25 years**: Full-fledged Stocks, Crypto (carefully), NPS, PPF
+    - **22-25 years**: Full-fledged Stocks, NPS, PPF
+    - **26-35 years**: Diversified Stocks, Mutual Funds, ELSS, Retirement Funds
     """)
 
-    age_input = st.slider("Select Age for Suggestions", 5, 25, 18)
+    age_input = st.slider("Select Age for Suggestions", 5, 35, 18)
     if age_input <= 12:
         st.info("Recommended: Piggy Bank, Recurring Deposit")
     elif age_input <= 17:
         st.info("Recommended: Savings Account, Mutual Funds, SIP")
     elif age_input <= 21:
         st.info("Recommended: Mutual Funds, Stock Market Basics, Digital Gold")
+    elif age_input <= 25:
+        st.info("Recommended: Stocks, NPS, PPF")
     else:
-        st.info("Recommended: Stocks, Crypto (cautiously), NPS, PPF")
+        st.info("Recommended: Diversified Portfolio, Mutual Funds, ELSS, Retirement Schemes")
 
     st.subheader("📌 Risk Appetite Based Suggestions")
     risk = st.selectbox("What's your risk appetite?", ["Low", "Moderate", "High"])
@@ -157,7 +160,7 @@ elif section == "Investment Suggestions":
     elif risk == "Moderate":
         st.info("Recommended: Mutual Funds, Index Funds")
     else:
-        st.info("Recommended: Stocks, Crypto, Real Estate")
+        st.info("Recommended: Stocks, Real Estate")
 
 # Financial Education Section
 elif section == "Financial Education":
