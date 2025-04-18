@@ -170,7 +170,7 @@ if remaining > 10000:
     </div>
     """, unsafe_allow_html=True)
     
-            st.metric("Total Income", f"₹{total_income:.2f}")
+           st.metric("Total Income", f"₹{total_income:.2f}")
             st.metric("Total Expenses", f"₹{total_expenses:.2f}")
             st.metric("Remaining Wealth", f"₹{remaining:.2f}")
 
