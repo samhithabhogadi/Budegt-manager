@@ -3,100 +3,109 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import plotly.graph_objs as go
 import yfinance as yf
+import streamlit as st
+import pandas as pd
+import matplotlib.pyplot as plt
+import plotly.graph_objs as go
+from datetime import datetime
 
-# ⚠️ Page config - keep this FIRST
 st.set_page_config(page_title="Student Budget & Investment Manager", layout="wide", page_icon="💸")
 
-# Load CSV
+# Load Data Function
 @st.cache_data
 def load_data():
-    return pd.read_csv("student_budget_data.csv", parse_dates=['Date'])
+    try:
+        df = pd.read_csv("student_budget_data.csv", parse_dates=['Date'])
+    except FileNotFoundError:
+        df = pd.DataFrame(columns=["Name", "Date", "Category", "Amount", "Pocket Money", "Investment Plan", "Age"])
+    return df
 
-# Load and clean data
-df = load_data()
-df['Date'] = pd.to_datetime(df['Date'])
+# Save Data Function
+def save_data(df):
+    df.to_csv("student_budget_data.csv", index=False)
 
-# Sidebar Setup
-with st.sidebar:
-    st.title("📚 Financial Toolkit")
-    st.markdown("Manage your **expenses & investments** all in one place.")
-    selected_section = st.radio("Navigate to", ["Home", "Add Expense", "Investments", "Nifty Tracker", "FAQ"])
-    selected_user = st.selectbox("Select Student", df['Name'].unique())
-    st.markdown("---")
-   
+# Load existing or create new data
+budget_data = load_data()
 
-# Filter by user
-user_data = df[df['Name'] == selected_user]
+# Sidebar Navigation
+st.sidebar.title("📚 Student Financial Toolkit")
+section = st.sidebar.radio("Navigate to", ["Home", "Add Entry", "Analysis", "Investment Suggestions"])
 
 # Home Section
-if selected_section == "Home":
-    st.title(f"🎓 Welcome {selected_user}!")
-    st.markdown("Here’s a snapshot of your budget and investment activities.")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.subheader("🧾 Spending Breakdown by Category")
-        category_spend = user_data.groupby("Category")['Amount'].sum()
-        fig1, ax1 = plt.subplots()
-        ax1.pie(category_spend, labels=category_spend.index, autopct='%1.1f%%', startangle=90)
-        ax1.axis('equal')
-        st.pyplot(fig1)
-
-    with col2:
-        st.subheader("📅 Spending Over Time")
-        time_series = user_data.groupby('Date')['Amount'].sum()
-        fig2, ax2 = plt.subplots()
-        ax2.plot(time_series.index, time_series.values, marker='o')
-        ax2.set_title("Daily Spending")
-        ax2.set_ylabel("Amount ($)")
-        st.pyplot(fig2)
-
-    st.subheader("💼 Investment Plan Distribution")
-    plan_count = user_data['Investment Plan'].value_counts()
-    st.bar_chart(plan_count)
-
-# Add Expense Section
-elif selected_section == "Add Expense":
-    st.title("➕ Add New Expense")
-    with st.form("add_expense"):
-        name = st.selectbox("Name", df['Name'].unique())
-        date = st.date_input("Date")
-        category = st.selectbox("Category", ["Food", "Transport", "Rent", "Entertainment", "Utilities", "Others"])
-        amount = st.number_input("Amount", min_value=0.0, step=10.0)
-        plan = st.selectbox("Investment Plan", ["Stocks", "Crypto", "Mutual Funds", "Fixed Deposit", "NPS"])
-        submit = st.form_submit_button("Add")
-        if submit:
-            new_row = pd.DataFrame([[name, date, category, amount, plan]],
-                                   columns=['Name', 'Date', 'Category', 'Amount', 'Investment Plan'])
-            new_df = pd_
-# --- Investment Planner ---
-elif section == "Investments":
-    st.title("📈 Investment Planner")
-    st.markdown("Simulate future investment returns.")
-    amount = st.number_input("Amount to invest ($)", min_value=100.0, step=50.0)
-    years = st.slider("Investment Duration (Years)", 1, 10, 3)
-    rate = st.slider("Expected Annual Return (%)", 5, 15, 8)
-
-    if st.button("Calculate"):
-        future_value = amount * ((1 + rate / 100) ** years)
-        st.success(f"💹 In {years} years, your investment could grow to **${future_value:,.2f}**")
-
-# --- FAQ ---
-elif section == "FAQ":
-    st.title("❓ Frequently Asked Questions")
+if section == "Home":
+    st.title("🎓 Welcome to the Student Budget & Investment Manager")
     st.markdown("""
-    **Q1: Who can use this app?**  
-    A: Any student or beginner wanting to manage expenses and understand investments.
+    Track your **pocket money**, monitor your **expenses**, and explore **investment options** suitable for your age!
 
-    **Q2: Is my data saved permanently?**  
-    A: No, data is stored in memory per session. For permanent storage, use database integration.
-
-    **Q3: How accurate is the investment planner?**  
-    A: It uses compound interest calculations. It's for educational use only, not financial advice.
-
-    **Q4: Can I track stocks other than Nifty 50?**  
-    A: Not yet. But we plan to support custom tickers in the future.
+    #### Features:
+    - Add pocket money & expenses
+    - View expense distribution
+    - Get age-based investment advice
     """)
 
+    st.subheader("📁 Current Budget Data")
+    if not budget_data.empty:
+        st.dataframe(budget_data)
+    else:
+        st.info("No data available. Please add entries.")
 
+# Add Entry Section
+elif section == "Add Entry":
+    st.title("➕ Add Pocket Money & Expense")
+    with st.form("entry_form"):
+        name = st.text_input("Student Name")
+        age = st.number_input("Age", min_value=5, max_value=25)
+        date = st.date_input("Date", value=datetime.today())
+        pocket_money = st.number_input("Pocket Money Received ($)", min_value=0.0, format="%.2f")
+        category = st.selectbox("Expense Category", ["Food", "Transport", "Rent", "Entertainment", "Utilities", "Others"])
+        amount = st.number_input("Expense Amount ($)", min_value=0.0, format="%.2f")
+        investment_plan = st.selectbox("Preferred Investment Plan", ["None", "Piggy Bank", "Fixed Deposit", "Mutual Funds", "Stocks", "Crypto"])
+        submit = st.form_submit_button("Add Entry")
+
+        if submit:
+            new_row = pd.DataFrame([[name, date, category, amount, pocket_money, investment_plan, age]],
+                                   columns=["Name", "Date", "Category", "Amount", "Pocket Money", "Investment Plan", "Age"])
+            budget_data = pd.concat([budget_data, new_row], ignore_index=True)
+            save_data(budget_data)
+            st.success("✅ Entry added successfully!")
+
+# Analysis Section
+elif section == "Analysis":
+    st.title("📊 Pocket Money vs Expenses Analysis")
+    if not budget_data.empty:
+        selected_name = st.selectbox("Select Student", budget_data['Name'].unique())
+        student_data = budget_data[budget_data['Name'] == selected_name]
+
+        total_pocket = student_data['Pocket Money'].sum()
+        total_spent = student_data['Amount'].sum()
+        saved_money = total_pocket - total_spent
+
+        st.metric("Total Pocket Money", f"${total_pocket:.2f}")
+        st.metric("Total Spent", f"${total_spent:.2f}")
+        st.metric("Saved Money", f"${saved_money:.2f}")
+
+        category_summary = student_data.groupby("Category")["Amount"].sum()
+        st.subheader("Spending by Category")
+        st.bar_chart(category_summary)
+    else:
+        st.info("No data available.")
+
+# Investment Suggestions
+elif section == "Investment Suggestions":
+    st.title("💼 Age-based Investment Suggestions")
+    st.markdown("""
+    - **5-12 years**: Piggy Banks, Recurring Deposits (with parents)
+    - **13-17 years**: Savings Account, Mutual Funds (with guardians), SIPs
+    - **18-21 years**: Mutual Funds, Stock Market Basics, Digital Gold
+    - **22-25 years**: Full-fledged Stocks, Crypto (carefully), NPS, PPF
+    """)
+
+    age_input = st.slider("Select Age for Suggestions", 5, 25, 18)
+    if age_input <= 12:
+        st.info("Recommended: Piggy Bank, Recurring Deposit")
+    elif age_input <= 17:
+        st.info("Recommended: Savings Account, Mutual Funds, SIP")
+    elif age_input <= 21:
+        st.info("Recommended: Mutual Funds, Stock Market Basics, Digital Gold")
+    else:
+        st.info("Recommended: Stocks, Crypto (cautiously), NPS, PPF")
