@@ -29,5 +29,8 @@ git init
 git add .
 git commit -m "Initial commit: Student Budget Manager app"
 git branch -M main
+git add .
+git commit -m "Update app with new features"
+git push
 git remote add origin https://github.com/samhithabhogadi/Budgett-stmanager.git
 git push -u origin main
