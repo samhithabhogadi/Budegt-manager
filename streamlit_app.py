@@ -5,7 +5,8 @@ import numpy as np
 import yfinance as yf
 import plotly.graph_objs as go
 import random
-from datetime import datetime, timedelta
+from datetime
+import datetime, timedelta
 
 # Dummy Data Setup
 if st.sidebar.checkbox("🧪 Load Sample Data"):
