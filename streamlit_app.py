@@ -23,6 +23,14 @@ def save_data(df):
 # ✅ Load the CSV data
 budget_data = load_data()
 
+# User Session
+st.sidebar.header("👤 User Login")
+username = st.sidebar.text_input("Enter your name", key="username")
+
+if not username:
+    st.warning("Please enter your name to continue.")
+    st.stop()
+
 # Sidebar Navigation
 st.sidebar.title("📚 Student Financial Toolkit")
 section = st.sidebar.radio("Navigate to", ["Home", "Add Entry", "Analysis", "Wealth Tracker", "Investment Suggestions", "Finance Education"])
@@ -141,29 +149,31 @@ elif section == "Analysis":
     else:
         st.info("No data available.")
 
-# Wealth Tracker Section
 elif section == "Wealth Tracker":
-    st.title("💼 Personal Wealth Overview")
+    st.title("💼 Expense vs Remaining Wealth")
     if not budget_data.empty:
         selected_name = st.selectbox("Select Student", budget_data['Name'].unique())
         student_data = budget_data[budget_data['Name'] == selected_name]
 
-        assets = student_data['Assets'].sum()
-        liabilities = student_data['Liabilities'].sum()
-        net_worth = assets - liabilities
+        total_income = student_data['Income'].sum()
+        total_expenses = student_data['Expenses'].sum()
+        remaining = total_income - total_expenses
 
-        st.metric("Total Assets", f"${assets:.2f}")
-        st.metric("Total Liabilities", f"${liabilities:.2f}")
-        st.metric("Net Worth", f"${net_worth:.2f}")
+        st.metric("Total Income", f"${total_income:.2f}")
+        st.metric("Total Expenses", f"${total_expenses:.2f}")
+        st.metric("Remaining Wealth", f"${remaining:.2f}")
 
-        st.subheader("Wealth Composition")
-        pie = pd.DataFrame({
-            'Type': ['Assets', 'Liabilities'],
-            'Value': [assets, liabilities]
-        })
-        fig, ax = plt.subplots()
-        ax.pie(pie['Value'], labels=pie['Type'], autopct='%1.1f%%', startangle=90)
-        st.pyplot(fig)
+        if total_income > 0:
+            pie = pd.DataFrame({
+                'Type': ['Expenses', 'Remaining'],
+                'Value': [total_expenses, remaining]
+            })
+            fig, ax = plt.subplots()
+            ax.pie(pie['Value'], labels=pie['Type'], autopct='%1.1f%%', startangle=90)
+            ax.axis("equal")
+            st.pyplot(fig)
+        else:
+            st.info("Insufficient income data to display chart.")
     else:
         st.warning("No data to display.")
 
