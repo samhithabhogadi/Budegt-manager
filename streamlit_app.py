@@ -73,6 +73,12 @@ else:
     st.sidebar.title("📚 Student Financial Toolkit")
     section = st.sidebar.radio("Navigate to", ["Home", "Add Entry", "Wealth Tracker", "Investment Suggestions", "Financial Education"])
 
+    if st.sidebar.button("🔓 Logout"):
+        st.session_state.authenticated = False
+        st.session_state.username = ""
+        st.session_state.hashed_password = ""
+        st.rerun()
+
     if section == "Home":
         st.title("🎓 Welcome to the Student Wealth & Investment Hub")
         st.markdown(f"""
@@ -107,16 +113,12 @@ else:
             submit = st.form_submit_button("Add Entry")
 
         if submit:
-            existing_entry = budget_data[(budget_data["Username"] == username) & (budget_data["Date"] == pd.to_datetime(date))]
-            if not existing_entry.empty:
-                st.warning("🚫 Entry already exists for this date. Edit it or choose a new date.")
-            else:
-                new_row = pd.DataFrame([[username, hashed_password, date, income, monthly_expenses, daily_expenses, saving_goals, risk_appetite, investment_plan, age, expense_category, amount]],
-                                       columns=["Username", "Password", "Date", "Monthly Income", "Monthly Expenses", "Daily Expenses",
-                                                "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Expense Category", "Amount (₹)"])
-                budget_data = pd.concat([budget_data, new_row], ignore_index=True)
-                save_data(budget_data)
-                st.success("✅ Entry added successfully.")
+            new_row = pd.DataFrame([[username, hashed_password, date, income, monthly_expenses, daily_expenses, saving_goals, risk_appetite, investment_plan, age, expense_category, amount]],
+                                   columns=["Username", "Password", "Date", "Monthly Income", "Monthly Expenses", "Daily Expenses",
+                                            "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Expense Category", "Amount (₹)"])
+            budget_data = pd.concat([budget_data, new_row], ignore_index=True)
+            save_data(budget_data)
+            st.success("✅ Entry added successfully.")
 
         if add_more:
             st.subheader("➕ Additional Expense Entries")
@@ -140,6 +142,8 @@ else:
 
     elif section == "Wealth Tracker":
         st.title("📊 Wealth Tracker")
+
+        user_data = budget_data[(budget_data['Username'] == username) & (budget_data['Password'] == hashed_password)]
 
         aggregated_data = user_data.groupby("Date").agg({
             "Monthly Income": "max",
