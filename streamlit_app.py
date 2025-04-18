@@ -119,18 +119,25 @@ else:
             # Collect multiple entries using expander
             if add_more:
                 with st.expander("➕ Add More Expenses"):
-                    more_expenses = st.experimental_data_editor(pd.DataFrame(columns=["Expense Category", "Amount (₹)"]))
-                    if not more_expenses.empty:
+                    default_expense_df = pd.DataFrame([{"Expense Category": "", "Amount (₹)": 0.0}])
+                    more_expenses = st.experimental_data_editor(default_expense_df, num_rows="dynamic")
+
+                    if not more_expenses.empty and "Amount (₹)" in more_expenses.columns:
                         for _, row in more_expenses.iterrows():
-                            extra_expense = float(row["Amount (₹)"])
-                            extra_category = row["Expense Category"]
-                            current_income -= extra_expense
-                            new_extra_row = pd.DataFrame([[username, hashed_password, datetime.today(), 0.0, extra_expense, "", "", "", age, extra_category]],
-                                                         columns=["Username", "Password", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Expense Category"])
-                            budget_data = pd.concat([budget_data, new_extra_row], ignore_index=True)
+                            try:
+                                extra_expense = float(row["Amount (₹)"])
+                                extra_category = row["Expense Category"]
+                                if extra_expense > 0:
+                                    current_income -= extra_expense
+                                    new_extra_row = pd.DataFrame([[username, hashed_password, datetime.today(), 0.0, extra_expense, "", "", "", age, extra_category]],
+                                                                 columns=["Username", "Password", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Expense Category"])
+                                    budget_data = pd.concat([budget_data, new_extra_row], ignore_index=True)
+                            except (ValueError, KeyError):
+                                continue
 
             save_data(budget_data)
             st.success(f"✅ Entry(ies) saved! Remaining Income: ₹{current_income:.2f}")
+
 
     # Analysis Section
     elif section == "Analysis":
