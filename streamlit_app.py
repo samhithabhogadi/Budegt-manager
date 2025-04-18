@@ -132,3 +132,55 @@ else:
                         continue
                 save_data(budget_data)
                 st.success("✅ Additional entries saved!")
+
+    elif section == "Wealth Tracker":
+        st.title("📉 Expense vs Wealth Tracker")
+
+        monthly_income_total = user_data["Monthly Income"].sum()
+        total_expenses = user_data["Monthly Expenses"].sum() + user_data["Daily Expenses"].sum() + user_data["Amount (₹)"].sum()
+        remaining_wealth = monthly_income_total - total_expenses
+
+        st.metric("📈 Total Income", f"₹{monthly_income_total:,.2f}")
+        st.metric("📉 Total Expenses", f"₹{total_expenses:,.2f}")
+        st.metric("💰 Remaining Wealth", f"₹{remaining_wealth:,.2f}")
+
+        pie_labels = ['Monthly Expenses', 'Daily Expenses', 'Other Expenses', 'Remaining']
+        pie_values = [
+            user_data["Monthly Expenses"].sum(),
+            user_data["Daily Expenses"].sum(),
+            user_data["Amount (₹)"].sum(),
+            remaining_wealth if remaining_wealth > 0 else 0
+        ]
+
+        pie_chart = go.Figure(data=[go.Pie(labels=pie_labels, values=pie_values, hole=0.3)])
+        st.plotly_chart(pie_chart, use_container_width=True)
+
+        st.subheader("📊 Investment Strategy by Age & Risk")
+        age = int(user_data["Age"].dropna().iloc[-1]) if not user_data["Age"].dropna().empty else 20
+        risk = user_data["Risk Appetite"].dropna().iloc[-1] if not user_data["Risk Appetite"].dropna().empty else "Moderate"
+
+        strategy = ""
+        if age < 18:
+            strategy = "Short-term: Piggy bank, Recurring Deposits.\n\nLong-term: Start saving discipline, learn about money."
+        elif 18 <= age < 22:
+            if risk == "Low":
+                strategy = "Short-term: Fixed Deposits, Debt Funds.\n\nLong-term: Balanced Mutual Funds."
+            elif risk == "Moderate":
+                strategy = "Short-term: Debt Funds, Conservative Hybrid Funds.\n\nLong-term: Mutual Funds, Index Funds."
+            else:
+                strategy = "Short-term: Liquid ETFs, Digital Gold.\n\nLong-term: Stocks, Crypto (careful)."
+        else:
+            if risk == "Low":
+                strategy = "Short-term: Debt Funds, Fixed Deposits.\n\nLong-term: PPF, Government Bonds."
+            elif risk == "Moderate":
+                strategy = "Short-term: Hybrid Funds.\n\nLong-term: Equity Mutual Funds, SIPs."
+            else:
+                strategy = "Short-term: Stocks, Thematic ETFs.\n\nLong-term: Equity, Real Estate Investment Trusts (REITs), Derivatives (if skilled)."
+
+        st.markdown(f"""
+        ### 🌎 Your Age: {age} | Risk Appetite: {risk}
+        
+        **Suggested Investment Strategy:**
+
+        {strategy}
+        """)
