@@ -7,7 +7,6 @@ import hashlib
 
 st.set_page_config(page_title="Student Wealth & Investment Hub", layout="wide", page_icon="💰")
 
-# ✅ Load Data Function
 @st.cache_data
 def load_data():
     expected_columns = [
@@ -24,24 +23,19 @@ def load_data():
         df.to_csv("student_budget_data.csv", index=False)
     return df
 
-# ✅ Save Data Function
 def save_data(df):
     df.to_csv("student_budget_data.csv", index=False)
 
-# ✅ Hashing Function for Password
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-# ✅ Load the CSV data
 budget_data = load_data()
 
-# Session setup
 if 'authenticated' not in st.session_state:
     st.session_state.authenticated = False
     st.session_state.username = ""
     st.session_state.hashed_password = ""
 
-# User login and registration
 if not st.session_state.authenticated:
     st.header("👤 User Login or Register")
     username = st.text_input("Enter your username", key="username_input")
@@ -76,11 +70,9 @@ else:
     hashed_password = st.session_state.hashed_password
     user_data = budget_data[(budget_data['Username'] == username) & (budget_data['Password'] == hashed_password)]
 
-    # Sidebar Navigation
     st.sidebar.title("📚 Student Financial Toolkit")
     section = st.sidebar.radio("Navigate to", ["Home", "Add Entry", "Wealth Tracker", "Investment Suggestions", "Financial Education"])
 
-    # Home Section
     if section == "Home":
         st.title("🎓 Welcome to the Student Wealth & Investment Hub")
         st.markdown(f"""
@@ -96,7 +88,6 @@ else:
         Your financial journey starts here! 🚀
         """)
 
-    # Add Entry Section
     elif section == "Add Entry":
         st.title("➕ Add Financial Entry")
 
@@ -117,66 +108,4 @@ else:
 
         if submit:
             new_row = pd.DataFrame([[username, hashed_password, date, income, monthly_expenses, daily_expenses, saving_goals, risk_appetite, investment_plan, age, expense_category, amount]],
-                                   columns=["Username", "Password", "Date", "Monthly Income", "Monthly Expenses", "Daily Expenses",
-                                            "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Expense Category", "Amount (₹)"])
-            budget_data = pd.concat([budget_data, new_row], ignore_index=True)
-            save_data(budget_data)
-
-        if add_more:
-            st.subheader("➕ Additional Expense Entries")
-            default_expense_df = pd.DataFrame([{"Expense Category": "", "Amount (₹)": 0.0}])
-            more_expenses = st.data_editor(default_expense_df, num_rows="dynamic", key="more_expenses_editor")
-
-            if not more_expenses.empty:
-                for _, row in more_expenses.iterrows():
-                    try:
-                        extra_expense = float(row["Amount (₹)"])
-                        extra_category = row["Expense Category"]
-                        if extra_expense > 0:
-                            new_extra_row = pd.DataFrame([[username, hashed_password, datetime.today(), 0.0, 0.0, 0.0, "", "", "", age, extra_category, extra_expense]],
-                                                         columns=["Username", "Password", "Date", "Monthly Income", "Monthly Expenses", "Daily Expenses",
-                                                                  "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Expense Category", "Amount (₹)"])
-                            budget_data = pd.concat([budget_data, new_extra_row], ignore_index=True)
-                    except Exception:
-                        continue
-                save_data(budget_data)
-                st.success("✅ Additional entries saved!")
-
-    # Wealth Tracker Section (formerly Analysis)
-    elif section == "Wealth Tracker":
-        st.title("💼 Wealth Tracker")
-        st.subheader("💸 Expenses & Remaining Wealth Overview")
-
-        user_data = budget_data[(budget_data['Username'] == username)]
-
-        if user_data.empty:
-            st.warning("No data found. Please add entries first.")
-        else:
-            total_income = user_data['Monthly Income'].sum()
-            total_expense = user_data['Amount (₹)'].sum() + user_data['Monthly Expenses'].sum() + user_data['Daily Expenses'].sum()
-            total_savings = total_income - total_expense
-
-            st.metric("💰 Total Income", f"₹{total_income:,.2f}")
-            st.metric("📈 Total Expenses", f"₹{total_expense:,.2f}")
-            st.metric("💵 Total Savings", f"₹{total_savings:,.2f}")
-
-            # Pie Chart for Expense Distribution
-            expense_df = user_data.groupby("Expense Category")["Amount (₹)"].sum().reset_index()
-            if not expense_df.empty:
-                fig = go.Figure(data=[go.Pie(labels=expense_df['Expense Category'], values=expense_df['Amount (₹)'], hole=.3)])
-                st.plotly_chart(fig, use_container_width=True)
-
-            st.subheader("📊 Suggested Investment Strategy")
-            if total_savings <= 0:
-                st.info("No savings to invest yet. Try reducing expenses.")
-            else:
-                if total_savings < 1000:
-                    st.write("Consider starting with a **Piggy Bank** or basic **Savings Account**.")
-                elif total_savings < 5000:
-                    st.write("Look into **Recurring Deposits** or **Low-risk Mutual Funds**.")
-                elif total_savings < 15000:
-                    st.write("Explore **Balanced Mutual Funds** or **Fixed Deposits**.")
-                elif total_savings < 30000:
-                    st.write("You can try **Index Funds** or **Conservative Stock Portfolios**.")
-                else:
-                    st.write("Consider **Stock Market**, **ETFs**, or even **Crypto** (based on your risk appetite).")
+                                   columns=["Username", "Password", "Date", "Monthly Income", "Monthly Expenses
