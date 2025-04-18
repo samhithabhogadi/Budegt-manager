@@ -23,7 +23,6 @@ def save_data(df):
 # ✅ Load the CSV data
 budget_data = load_data()
 
-
 # Username input on main screen
 st.header("👤 User Login")
 username = st.text_input("Enter your name", key="username")
@@ -34,36 +33,7 @@ if not username:
 
 # Sidebar Navigation
 st.sidebar.title("📚 Student Financial Toolkit")
-section = st.sidebar.radio("Navigate to", ["Home", "Add Entry", "Analysis", "Wealth Tracker", "Investment Suggestions", "Finance Education"])
-
-# Sidebar Education Section
-st.sidebar.markdown("""
----
-### 📘 Finance Education
-- **Types of Stocks**:
-  - Blue-chip (stable)
-  - Growth (high potential)
-  - Dividend (income)
-  - Penny stocks (high risk)
-
-- **Types of Mutual Funds**:
-  - Equity (high growth)
-  - Debt (stable returns)
-  - Hybrid (balanced)
-
-- **Risk Levels**:
-  - Low: PPF, FDs
-  - Moderate: Index Funds, SIPs
-  - High: Stocks, Crypto
-
-- **Key Concepts**:
-  - Net Worth = Assets - Liabilities
-  - Diversification = Spreading risk
-  - SIP = Systematic Investment Plan
-  - Asset: What you own
-  - Liability: What you owe
-  - Compounding: Earning interest on interest
-""")
+section = st.sidebar.radio("Navigate to", ["Home", "Add Entry", "Analysis", "Wealth Tracker", "Investment Suggestions"])
 
 # Home Section
 if section == "Home":
@@ -76,7 +46,6 @@ if section == "Home":
     - View savings and financial analysis
     - Net worth tracking
     - Personalized investment advice
-    - Finance education sidebar
     """)
 
     st.subheader("📁 Your Budget Data")
@@ -105,7 +74,6 @@ elif section == "Add Entry":
         if submit:
             new_row = pd.DataFrame([[username, date, income, expenses, saving_goals, risk_appetite, investment_plan, age, assets, liabilities]],
                                    columns=["Name", "Date", "Income", "Expenses", "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Assets", "Liabilities"])
-            budget_data = budget_data[budget_data['Name'] != username]  # Remove old user data
             budget_data = pd.concat([budget_data, new_row], ignore_index=True)
             save_data(budget_data)
             st.success("✅ Entry added successfully!")
@@ -122,6 +90,13 @@ elif section == "Analysis":
         st.metric("Total Income", f"${total_income:.2f}")
         st.metric("Total Expenses", f"${total_expenses:.2f}")
         st.metric("Estimated Savings", f"${total_savings:.2f}")
+
+        st.subheader("📈 Income vs Expenses Over Time")
+        line_data = student_data.sort_values("Date")
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=line_data['Date'], y=line_data['Income'], mode='lines+markers', name='Income'))
+        fig.add_trace(go.Scatter(x=line_data['Date'], y=line_data['Expenses'], mode='lines+markers', name='Expenses'))
+        st.plotly_chart(fig)
 
     else:
         st.info("No data available.")
@@ -167,55 +142,4 @@ elif section == "Investment Suggestions":
     if age_input <= 12:
         st.info("Recommended: Piggy Bank, Recurring Deposit")
     elif age_input <= 17:
-        st.info("Recommended: Savings Account, Mutual Funds, SIP")
-    elif age_input <= 21:
-        st.info("Recommended: Mutual Funds, Stock Market Basics, Digital Gold")
-    else:
-        st.info("Recommended: Stocks, Crypto (cautiously), NPS, PPF")
-
-    st.subheader("📌 Risk Appetite Based Suggestions")
-    risk = st.selectbox("What's your risk appetite?", ["Low", "Moderate", "High"])
-    if risk == "Low":
-        st.info("Recommended: Fixed Deposits, PPF, Bonds")
-    elif risk == "Moderate":
-        st.info("Recommended: Mutual Funds, Index Funds")
-    else:
-        st.info("Recommended: Stocks, Crypto, Real Estate")
-
-# Finance Education Section
-elif section == "Finance Education":
-    st.title("📘 Financial Literacy & Investment Knowledge")
-    st.markdown("""
-    #### 🧾 Understanding Stock Types:
-    - **Blue-chip**: Reliable, established companies
-    - **Growth Stocks**: Companies expected to grow faster
-    - **Dividend Stocks**: Provide regular income
-    - **Penny Stocks**: High risk, low price
-
-    #### 📊 Types of Mutual Funds:
-    - **Equity Funds**: Invest in stocks
-    - **Debt Funds**: Invest in bonds or fixed-income instruments
-    - **Hybrid Funds**: Mix of equity and debt
-
-    #### ⚠️ Investment Risks:
-    - Market Risk
-    - Credit Risk
-    - Liquidity Risk
-    - Inflation Risk
-
-    #### 📈 Popular Investment Tools:
-    - SIPs (Systematic Investment Plans)
-    - Index Funds
-    - PPF (Public Provident Fund)
-    - NPS (National Pension Scheme)
-
-    #### 🧮 What is Compounding?
-    - Compounding means earning interest on both the initial principal and the accumulated interest.
-    - Over time, this can lead to exponential growth of investments.
-
-    #### 💡 Golden Rules:
-    - Start early
-    - Diversify your portfolio
-    - Match investments to goals
-    - Monitor and adjust regularly
-    """)
+        st.i
