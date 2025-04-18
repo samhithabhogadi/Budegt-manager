@@ -19,7 +19,7 @@ pip install matplotlib
 pip install pandas
 pip install numpy
 pip install plotly
-
+pip install yfinance
 # Run the Streamlit app
 streamlit run streamlit_app.py
 
