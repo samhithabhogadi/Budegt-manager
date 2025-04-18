@@ -60,19 +60,28 @@ if section == "Home":
 # Add Entry Section
 elif section == "Add Entry":
     st.title("➕ Add Daily Financial Entry")
-    num_entries = st.number_input("How many entries do you want to add?", min_value=1, max_value=10, step=1)
+    num_entries = st.number_input("How many entries do you want to add?", min_value=1, max_value=15, step=1)
 
     new_entries = []
     for i in range(int(num_entries)):
         st.markdown(f"### Entry {i+1}")
         with st.form(f"entry_form_{i}", clear_on_submit=True):
-            age = st.number_input("Age", min_value=5, max_value=35, key=f"age_{i}")
-            date = st.date_input("Date", value=datetime.today(), key=f"date_{i}")
-            income = st.number_input("Daily Income (₹)", min_value=0.0, format="%.2f", key=f"income_{i}")
-            expenses = st.number_input("Total Daily Expenses (₹)", min_value=0.0, format="%.2f", key=f"expenses_{i}")
-            saving_goals = st.text_input("Saving Goals", key=f"savings_{i}")
-            risk_appetite = st.selectbox("Risk Appetite", ["Low", "Moderate", "High"], key=f"risk_{i}")
-            investment_plan = st.selectbox("Preferred Investment Plan", ["None", "Piggy Bank", "Fixed Deposit", "Mutual Funds", "Stocks", "Crypto"], key=f"plan_{i}")
+            if i == 0:
+                age = st.number_input("Age", min_value=5, max_value=35, key=f"age_{i}")
+                date = st.date_input("Date", value=datetime.today(), key=f"date_{i}")
+                income = st.number_input("Daily Income (₹)", min_value=0.0, format="%.2f", key=f"income_{i}")
+                expenses = st.number_input("Total Daily Expenses (₹)", min_value=0.0, format="%.2f", key=f"expenses_{i}")
+                saving_goals = st.text_input("Saving Goals", key=f"savings_{i}")
+                risk_appetite = st.selectbox("Risk Appetite", ["Low", "Moderate", "High"], key=f"risk_{i}")
+                investment_plan = st.selectbox("Preferred Investment Plan", ["None", "Piggy Bank", "Fixed Deposit", "Mutual Funds", "Stocks", "Crypto"], key=f"plan_{i}")
+            else:
+                age = None
+                income = 0.0
+                saving_goals = ""
+                risk_appetite = ""
+                investment_plan = ""
+                date = st.date_input("Date", value=datetime.today(), key=f"date_{i}")
+                expenses = st.number_input("Total Daily Expenses (₹)", min_value=0.0, format="%.2f", key=f"expenses_{i}")
             submit = st.form_submit_button("Add Entry")
 
             if submit:
@@ -82,7 +91,9 @@ elif section == "Add Entry":
                 save_data(budget_data)
                 st.success(f"✅ Entry {i+1} added successfully!")
 
-# Analysis Section
+
+
+# Analysi Section
 elif section == "Analysis":
     st.title("📊 Financial Overview")
     student_data = budget_data[budget_data['Name'] == username]
