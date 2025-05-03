@@ -1,212 +1,149 @@
+# Finora: Smart Student Budget & Wealth Manager (MVP in Streamlit)
+
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
-import plotly.graph_objs as go
+import numpy as np
 from datetime import datetime
-import hashlib
 
-st.set_page_config(page_title="Student Wealth & Investment Hub", layout="wide", page_icon="💰")
+st.set_page_config(page_title="Finora", layout="wide", page_icon="💼")
 
-@st.cache_data
-def load_data():
-    expected_columns = [
-        "Username", "Password", "Date", "Monthly Income", "Monthly Expenses",
-        "Daily Expenses", "Saving Goals", "Risk Appetite", "Investment Plan",
-        "Age", "Expense Category", "Amount (₹)"
-    ]
-    try:
-        df = pd.read_csv("student_budget_data.csv", parse_dates=['Date'])
-        if not all(col in df.columns for col in expected_columns):
-            raise ValueError("Missing columns")
-    except (FileNotFoundError, ValueError):
-        df = pd.DataFrame(columns=expected_columns)
-        df.to_csv("student_budget_data.csv", index=False)
-    return df
+# Apply custom theme using markdown (Streamlit's native support is limited)
+st.markdown(
+    """
+    <style>
+        html, body, [class*="css"]  {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f5f7fa;
+            color: #1f2937;
+        }
+        .stApp {
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .block-container {
+            padding: 1rem 2rem;
+        }
+        .css-1d391kg {  /* Sidebar background */
+            background: #111827;
+            color: white;
+        }
+        .css-1d391kg a {
+            color: #d1d5db;
+        }
+        .css-1d391kg a:hover {
+            color: white;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
-def save_data(df):
-    df.to_csv("student_budget_data.csv", index=False)
+# Initialize session state if not already present
+if 'transactions' not in st.session_state:
+    st.session_state['transactions'] = pd.DataFrame(columns=['Date', 'Type', 'Category', 'Amount', 'Notes'])
 
-def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
+if 'goals' not in st.session_state:
+    st.session_state['goals'] = pd.DataFrame(columns=['Goal', 'Target Amount', 'Saved Amount', 'Deadline'])
 
-budget_data = load_data()
+# Sidebar navigation
+st.sidebar.title("📊 Finora")
+st.sidebar.markdown("### Finance simplified ✨")
+page = st.sidebar.radio("Navigate to", ["Dashboard", "Add Transaction", "Set Goals", "Reports", "Investment Suggestions"])
 
-if 'authenticated' not in st.session_state:
-    st.session_state.authenticated = False
-    st.session_state.username = ""
-    st.session_state.hashed_password = ""
+# Add Transaction Page
+if page == "Add Transaction":
+    st.title("💸 Add Income or Expense")
+    with st.form("transaction_form"):
+        date = st.date_input("Date", datetime.today())
+        t_type = st.selectbox("Type", ["Income", "Expense"])
+        category = st.selectbox("Category", ["Salary", "Food", "Transport", "Rent", "Miscellaneous", "Investment"])
+        amount = st.number_input("Amount (₹)", min_value=0.0, format="%0.2f")
+        notes = st.text_input("Notes")
+        submitted = st.form_submit_button("Add Transaction")
 
-if not st.session_state.authenticated:
-    st.header("👤 User Login or Register")
-    username = st.text_input("Enter your username", key="username_input")
-    password = st.text_input("Enter your password", type="password", key="password_input")
+        if submitted:
+            new_row = pd.DataFrame([[date, t_type, category, amount, notes]],
+                                   columns=['Date', 'Type', 'Category', 'Amount', 'Notes'])
+            st.session_state['transactions'] = pd.concat([st.session_state['transactions'], new_row], ignore_index=True)
+            st.success("Transaction added successfully!")
 
-    if username and password:
-        hashed_password = hash_password(password)
-        user_data = budget_data[(budget_data['Username'] == username) & (budget_data['Password'] == hashed_password)]
+# Set Goals Page
+elif page == "Set Goals":
+    st.title("🎯 Set Savings Goals")
+    with st.form("goal_form"):
+        goal_name = st.text_input("Goal Name")
+        target = st.number_input("Target Amount (₹)", min_value=100.0)
+        saved = st.number_input("Current Saved Amount (₹)", min_value=0.0)
+        deadline = st.date_input("Deadline")
+        submitted = st.form_submit_button("Add Goal")
 
-        if not user_data.empty:
-            st.session_state.authenticated = True
-            st.session_state.username = username
-            st.session_state.hashed_password = hashed_password
-            st.success("✅ Logged in successfully!")
+        if submitted:
+            new_goal = pd.DataFrame([[goal_name, target, saved, deadline]],
+                                    columns=['Goal', 'Target Amount', 'Saved Amount', 'Deadline'])
+            st.session_state['goals'] = pd.concat([st.session_state['goals'], new_goal], ignore_index=True)
+            st.success("Goal added!")
 
-    if st.button("Register New User"):
-        if username and password:
-            hashed_password = hash_password(password)
-            if username not in budget_data['Username'].values:
-                new_user = pd.DataFrame([[username, hashed_password, None, 0.0, 0.0, 0.0, "", "", "", None, "", 0.0]],
-                                         columns=["Username", "Password", "Date", "Monthly Income", "Monthly Expenses",
-                                                  "Daily Expenses", "Saving Goals", "Risk Appetite", "Investment Plan",
-                                                  "Age", "Expense Category", "Amount (₹)"])
-                budget_data = pd.concat([budget_data, new_user], ignore_index=True)
-                save_data(budget_data)
-                st.session_state.authenticated = True
-                st.session_state.username = username
-                st.session_state.hashed_password = hashed_password
-                st.success("✅ New user registered.")
-else:
-    username = st.session_state.username
-    hashed_password = st.session_state.hashed_password
-    user_data = budget_data[(budget_data['Username'] == username) & (budget_data['Password'] == hashed_password)]
+    st.subheader("Your Goals")
+    st.dataframe(st.session_state['goals'])
 
-    st.sidebar.title("📚 Student Financial Toolkit")
-    section = st.sidebar.radio("Navigate to", ["Home", "Add Entry", "Wealth Tracker", "Investment Suggestions", "Financial Education"])
+# Dashboard Page
+elif page == "Dashboard":
+    st.title("📈 Dashboard")
+    df = st.session_state['transactions']
+    income = df[df['Type'] == 'Income']['Amount'].sum()
+    expense = df[df['Type'] == 'Expense']['Amount'].sum()
+    savings = income - expense
 
-    if st.sidebar.button("🔓 Logout"):
-        st.session_state.authenticated = False
-        st.session_state.username = ""
-        st.session_state.hashed_password = ""
-        st.rerun()
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Total Income", f"₹{income:,.2f}")
+    col2.metric("Total Expenses", f"₹{expense:,.2f}")
+    col3.metric("Net Savings", f"₹{savings:,.2f}")
 
-    if section == "Home":
-        st.title("🎓 Welcome to the Student Wealth & Investment Hub")
-        st.markdown(f"""
-        Hello **{username}**, welcome back!
+    if not df.empty:
+        st.subheader("Recent Transactions")
+        st.dataframe(df.sort_values(by='Date', ascending=False).head(10))
 
-        Use this app to:
-        - Track **monthly income**
-        - Log **daily expenses** with categories
-        - Set **saving goals**
-        - Monitor your **investment preferences**
-        - Visualize financial trends
+# Reports Page
+elif page == "Reports":
+    st.title("📊 Expense Reports")
+    df = st.session_state['transactions']
+    if df.empty:
+        st.warning("No transactions yet.")
+    else:
+        exp_df = df[df['Type'] == 'Expense']
+        category_summary = exp_df.groupby('Category')['Amount'].sum().reset_index()
 
-        Your financial journey starts here! 🚀
-        """)
+        st.subheader("Expenses by Category")
+        st.bar_chart(category_summary.set_index('Category'))
 
-    elif section == "Add Entry":
-        st.title("➕ Add Financial Entry")
+        st.subheader("Monthly Trends")
+        df['Month'] = pd.to_datetime(df['Date']).dt.to_period('M')
+        monthly = df.groupby(['Month', 'Type'])['Amount'].sum().unstack().fillna(0)
+        st.line_chart(monthly)
 
-        with st.form("entry_form"):
-            st.subheader("📅 Financial Details")
-            age = st.number_input("Age", min_value=5, max_value=25)
-            date = st.date_input("Date", value=datetime.today())
-            income = st.number_input("Monthly Income (₹)", min_value=0.0, format="%.2f")
-            monthly_expenses = st.number_input("Total Monthly Expenses (₹)", min_value=0.0, format="%.2f")
-            daily_expenses = st.number_input("Total Daily Expenses (₹)", min_value=0.0, format="%.2f")
-            saving_goals = st.text_input("Saving Goals")
-            risk_appetite = st.selectbox("Risk Appetite", ["Low", "Moderate", "High"])
-            investment_plan = st.selectbox("Preferred Investment Plan", ["None", "Piggy Bank", "Fixed Deposit", "Mutual Funds", "Stocks", "Crypto"])
-            expense_category = st.text_input("Main Expense Category")
-            amount = st.number_input("Main Expense Amount (₹)", min_value=0.0, format="%.2f")
-            add_more = st.checkbox("Add more expense entries")
-            submit = st.form_submit_button("Add Entry")
+# Investment Suggestions Page
+elif page == "Investment Suggestions":
+    st.title("💡 Investment Suggestions")
+    st.markdown("""
+    Based on your savings and goals, consider these:
+    - **SIPs in Mutual Funds** for long-term wealth.
+    - **RDs or FDs** for short-term secure saving.
+    - **Digital Gold** for goal-linked savings.
+    - **PPF** if you’re risk-averse and want tax benefits.
+    
+    ✅ You can also link your goals to specific investments!
+    """)
 
-        if submit:
-            new_row = pd.DataFrame([[username, hashed_password, date, income, monthly_expenses, daily_expenses, saving_goals, risk_appetite, investment_plan, age, expense_category, amount]],
-                                   columns=["Username", "Password", "Date", "Monthly Income", "Monthly Expenses", "Daily Expenses",
-                                            "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Expense Category", "Amount (₹)"])
-            budget_data = pd.concat([budget_data, new_row], ignore_index=True)
-            save_data(budget_data)
-            st.success("✅ Entry added successfully.")
+    st.subheader("Your Financial Goals")
+    st.dataframe(st.session_state['goals'])
 
-        if add_more:
-            st.subheader("➕ Additional Expense Entries")
-            default_expense_df = pd.DataFrame([{"Expense Category": "", "Amount (₹)": 0.0}])
-            more_expenses = st.data_editor(default_expense_df, num_rows="dynamic", key="more_expenses_editor")
+    st.subheader("Savings Overview")
+    income = st.session_state['transactions'][st.session_state['transactions']['Type'] == 'Income']['Amount'].sum()
+    expense = st.session_state['transactions'][st.session_state['transactions']['Type'] == 'Expense']['Amount'].sum()
+    savings = income - expense
+    st.info(f"Estimated Available Savings: ₹{savings:,.2f}")
 
-            if not more_expenses.empty:
-                for _, row in more_expenses.iterrows():
-                    try:
-                        extra_expense = float(row["Amount (₹)"])
-                        extra_category = row["Expense Category"]
-                        if extra_expense > 0:
-                            new_extra_row = pd.DataFrame([[username, hashed_password, datetime.today(), 0.0, 0.0, 0.0, "", "", "", age, extra_category, extra_expense]],
-                                                         columns=["Username", "Password", "Date", "Monthly Income", "Monthly Expenses", "Daily Expenses",
-                                                                  "Saving Goals", "Risk Appetite", "Investment Plan", "Age", "Expense Category", "Amount (₹)"])
-                            budget_data = pd.concat([budget_data, new_extra_row], ignore_index=True)
-                    except Exception:
-                        continue
-                save_data(budget_data)
-                st.success("✅ Additional entries saved!")
-
-    elif section == "Wealth Tracker":
-        st.title("📊 Wealth Tracker")
-
-        user_data = budget_data[(budget_data['Username'] == username) & (budget_data['Password'] == hashed_password)]
-
-        aggregated_data = user_data.groupby("Date").agg({
-            "Monthly Income": "max",
-            "Monthly Expenses": "sum",
-            "Daily Expenses": "sum",
-            "Amount (₹)": "sum"
-        }).reset_index()
-
-        monthly_income_total = aggregated_data["Monthly Income"].sum()
-        total_expenses = aggregated_data["Monthly Expenses"].sum() + aggregated_data["Daily Expenses"].sum() + aggregated_data["Amount (₹)"].sum()
-        remaining_wealth = monthly_income_total - total_expenses
-
-        st.metric("📈 Total Income", f"₹{monthly_income_total:,.2f}")
-        st.metric("📉 Total Expenses", f"₹{total_expenses:,.2f}")
-        st.metric("💰 Remaining Wealth", f"₹{remaining_wealth:,.2f}")
-
-        pie_labels = ['Monthly Expenses', 'Daily Expenses', 'Other Expenses', 'Remaining']
-        pie_values = [
-            aggregated_data["Monthly Expenses"].sum(),
-            aggregated_data["Daily Expenses"].sum(),
-            aggregated_data["Amount (₹)"].sum(),
-            remaining_wealth if remaining_wealth > 0 else 0
-        ]
-
-        pie_chart = go.Figure(data=[go.Pie(labels=pie_labels, values=pie_values, hole=0.3)])
-        st.plotly_chart(pie_chart, use_container_width=True)
-
-        st.subheader("📘 Investment Strategy Based on Age & Risk Appetite")
-
-        age = int(user_data["Age"].dropna().iloc[-1]) if not user_data["Age"].dropna().empty else 20
-        risk = user_data["Risk Appetite"].dropna().iloc[-1] if not user_data["Risk Appetite"].dropna().empty else "Moderate"
-
-        st.markdown(f"""
-        ### 👤 Your Profile
-        - **Age**: {age}
-        - **Risk Appetite**: {risk}
-        """)
-
-        strategy = ""
-        if age < 18:
-            strategy = "Piggy bank savings, Recurring Deposits, Financial literacy games."
-        elif 18 <= age < 22:
-            if risk == "Low":
-                strategy = "Fixed Deposits, Debt Mutual Funds (low risk), PPF."
-            elif risk == "Moderate":
-                strategy = "Balanced Mutual Funds, Index Funds, SIPs."
-            else:
-                strategy = "Stocks, ETFs, Crypto (small %), Thematic Funds."
-        else:
-            if risk == "Low":
-                strategy = "Government Bonds, PPF, Debt Funds."
-            elif risk == "Moderate":
-                strategy = "Equity Mutual Funds, SIPs, Hybrid Funds."
-            else:
-                strategy = "Direct Equity, REITs, Derivatives (for skilled)."
-
-        st.info(f"**Recommended Investment Strategy:**\n{strategy}")
-
-        st.markdown("""
-        ---
-        ### 📚 Learning Resources
-        - [NSE Investment Academy](https://www.nseindia.com/learn)  
-        - [SEBI Investor Education](https://investor.sebi.gov.in/)  
-        - [Groww Blog](https://groww.in/blog)  
-        - [Zerodha Varsity](https://zerodha.com/varsity/)  
-        """)
+    if savings < 0:
+        st.warning("You're spending more than you earn! Consider reviewing your expenses.")
