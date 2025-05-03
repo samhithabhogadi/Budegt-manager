@@ -4,3 +4,4 @@ matplotlib
 numpy
 plotly
 yfinance
+streamlit_animate
