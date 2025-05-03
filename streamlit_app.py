@@ -55,7 +55,19 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Initialize session state
+# Show opening welcome screen only once
+if 'welcome_done' not in st.session_state:
+    st.session_state['welcome_done'] = False
+
+if not st.session_state['welcome_done']:
+    st.title("💼 Welcome to Finora")
+    st.subheader("Your smart companion for budgeting and wealth management ✨")
+    st.markdown("Designed for students and young earners to build habits for a wealthy future.")
+    if st.button("Enter App ➡️"):
+        st.session_state['welcome_done'] = True
+    st.stop()
+
+# Initialize session state for app data
 if 'transactions' not in st.session_state:
     st.session_state['transactions'] = pd.DataFrame(columns=['Date', 'Type', 'Category', 'Amount', 'Notes'])
 
