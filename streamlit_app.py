@@ -13,20 +13,20 @@ st.markdown(
     <style>
         html, body, [class*="css"]  {
             font-family: 'Segoe UI', sans-serif;
-            background-color: #f5f7fa;
+            background-color: #f4f6f9;
             color: #1f2937;
         }
         .stApp {
             background-color: #ffffff;
             padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         .block-container {
             padding: 1rem 2rem;
         }
-        .css-1d391kg {  /* Sidebar background */
-            background: #111827;
+        .css-1d391kg {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
             color: white;
         }
         .css-1d391kg a {
@@ -35,12 +35,27 @@ st.markdown(
         .css-1d391kg a:hover {
             color: white;
         }
+        .scrollbox {
+            overflow-x: auto;
+            white-space: nowrap;
+            padding: 10px;
+            background: #f1f5f9;
+            border: 1px dashed #cbd5e1;
+            border-radius: 10px;
+        }
+        .section {
+            border-left: 4px groove #4ade80;
+            padding-left: 1rem;
+            margin-bottom: 1.5rem;
+            background: #f0fdf4;
+            border-radius: 8px;
+        }
     </style>
     """,
     unsafe_allow_html=True
 )
 
-# Initialize session state if not already present
+# Initialize session state
 if 'transactions' not in st.session_state:
     st.session_state['transactions'] = pd.DataFrame(columns=['Date', 'Type', 'Category', 'Amount', 'Notes'])
 
@@ -51,6 +66,21 @@ if 'goals' not in st.session_state:
 st.sidebar.title("📊 Finora")
 st.sidebar.markdown("### Finance simplified ✨")
 page = st.sidebar.radio("Navigate to", ["Dashboard", "Add Transaction", "Set Goals", "Reports", "Investment Suggestions"])
+
+# Financial Education
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 📚 Financial Education")
+st.sidebar.markdown("""
+**Equity Investments**:
+- Ownership in a company (stocks)
+- Types: Large-cap, Mid-cap, Small-cap
+- Suitable for long-term and higher risk takers
+
+**Debt Investments**:
+- Lending to institutions (bonds, FDs)
+- Types: Government, Corporate, Bank FDs
+- Best for risk-averse, fixed-income seekers
+""")
 
 # Add Transaction Page
 if page == "Add Transaction":
@@ -96,14 +126,15 @@ elif page == "Dashboard":
     expense = df[df['Type'] == 'Expense']['Amount'].sum()
     savings = income - expense
 
+    st.markdown("### 💼 Summary", unsafe_allow_html=True)
     col1, col2, col3 = st.columns(3)
     col1.metric("Total Income", f"₹{income:,.2f}")
     col2.metric("Total Expenses", f"₹{expense:,.2f}")
     col3.metric("Net Savings", f"₹{savings:,.2f}")
 
     if not df.empty:
-        st.subheader("Recent Transactions")
-        st.dataframe(df.sort_values(by='Date', ascending=False).head(10))
+        st.markdown("### 🧾 Recent Transactions")
+        st.markdown('<div class="scrollbox">' + df.sort_values(by='Date', ascending=False).head(10).to_html(index=False) + '</div>', unsafe_allow_html=True)
 
 # Reports Page
 elif page == "Reports":
@@ -121,7 +152,7 @@ elif page == "Reports":
         st.subheader("Monthly Trends")
         df['Month'] = pd.to_datetime(df['Date']).dt.to_period('M')
         monthly = df.groupby(['Month', 'Type'])['Amount'].sum().unstack().fillna(0)
-        st.line_chart(monthly)
+        st.pie_chart(monthly)
 
 # Investment Suggestions Page
 elif page == "Investment Suggestions":
