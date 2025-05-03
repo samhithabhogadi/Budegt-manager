@@ -1,12 +1,13 @@
-A simple budgeting app for students to track income, expenses, and savings. Built with Python and Streamlit.
+Finora: Budgeting & Wealth Management App
 
-## ✨ Features
-- 💰 Monthly income tracking
-- 🧾 Categorized expense input
-- 📊 Pie chart for expense distribution
-- 💡 Summary with savings and tips
+Finora is a smart companion for students and young earners to build habits for a wealthy future. The app allows users to track transactions, set financial goals, generate reports, and receive investment suggestions.
 
-## 🚀 Run Locally
+Features:
+Track Income and Expenses
+Set Financial Goals
+Generate Reports
+Investment Suggestions
+Stock Portfolio Tracking
 
 ```bash
 # Clone the repository
