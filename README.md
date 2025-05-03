@@ -20,6 +20,8 @@ pip install pandas
 pip install numpy
 pip install plotly
 pip install yfinance
+pip install streamlit-animate
+
 # Run the Streamlit app
 streamlit run streamlit_app.py
 
