@@ -1,10 +1,11 @@
-# Finora: Smart Student Budget & Wealth Manager (MVP in Streamlit)
-
 import streamlit as st
 import pandas as pd
 import numpy as np
 from datetime import datetime
+import yfinance as yf
+from streamlit_animate import st_animate
 
+# Set the page config
 st.set_page_config(page_title="Finora", layout="wide", page_icon="💼")
 
 # Apply custom theme using markdown (Streamlit's native support is limited)
@@ -60,10 +61,12 @@ if 'welcome_done' not in st.session_state:
     st.session_state['welcome_done'] = False
 
 if not st.session_state['welcome_done']:
+    st_animate("fadeIn", duration=500)
     st.title("💼 Welcome to Finora")
     st.subheader("Your smart companion for budgeting and wealth management ✨")
     st.markdown("Designed for students and young earners to build habits for a wealthy future.")
     if st.button("Enter App ➡️"):
+        st_animate("bounceIn", duration=700)
         st.session_state['welcome_done'] = True
     st.stop()
 
@@ -73,6 +76,9 @@ if 'transactions' not in st.session_state:
 
 if 'goals' not in st.session_state:
     st.session_state['goals'] = pd.DataFrame(columns=['Goal', 'Target Amount', 'Saved Amount', 'Deadline'])
+
+if 'achievements' not in st.session_state:
+    st.session_state['achievements'] = []
 
 # Sidebar navigation
 st.sidebar.title("📊 Finora")
@@ -178,6 +184,19 @@ elif page == "Investment Suggestions":
     
     ✅ You can also link your goals to specific investments!
     """)
+
+    # Investment Portfolio Integration (using Yahoo Finance)
+    st.subheader("Track Your Investments")
+    stock_symbol = st.text_input("Enter Stock Symbol (e.g., AAPL, TSLA, etc.)", "AAPL")
+    if stock_symbol:
+        stock = yf.Ticker(stock_symbol)
+        stock_data = stock.history(period="1d")
+        st.write(f"**{stock_symbol} Stock Data**")
+        st.dataframe(stock_data)
+
+        closing_price = stock_data['Close'].iloc[-1]
+        st.info(f"Last Closing Price of {stock_symbol}: ₹{closing_price:,.2f}")
+        st.line_chart(stock_data['Close'])
 
     st.subheader("Your Financial Goals")
     st.dataframe(st.session_state['goals'])
